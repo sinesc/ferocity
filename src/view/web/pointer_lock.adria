@@ -1,0 +1,158 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Listenable = require('astd/listenable');
+
+/**
+ * listenable mouse input with pointerlock
+ *
+ * @event mousemove(deltaX, deltaY) (only while locked)
+ * @event pointerlock(aquired)
+ */
+module PointerLock = proto (Listenable) {
+
+    protected requestElement: null,
+
+    public constructor: func() {
+
+        document.addEventListener('pointerlockchange', this, false);
+        document.addEventListener('webkitpointerlockchange', this, false);
+        document.addEventListener('mozpointerlockchange', this, false);
+        document.addEventListener('opointerlockchange', this, false);
+    },
+
+    public destroy: func() {
+
+        document.removeEventListener('pointerlockchange', this, false);
+        document.removeEventListener('webkitpointerlockchange', this, false);
+        document.removeEventListener('mozpointerlockchange', this, false);
+        document.removeEventListener('opointerlockchange', this, false);
+        document.removeEventListener('mousemove', this, false);
+    },
+
+    public handleEvent: func(e) {
+
+        if (e.type === 'mousemove') {
+            this.mouseMove(e);
+        } else {
+            this.pointerLockChange();
+        }
+    },
+
+    protected mouseMove: func(e) {
+
+        var movementX = e.movementX || e.webkitMovementX || e.mozMovementX || e.oMovementX || 0;
+        var movementY = e.movementY || e.webkitMovementY || e.mozMovementY || e.oMovementY || 0;
+
+        if (movementX !== 0 || movementY !== 0) {
+            this.execute('mousemove', movementX, movementY);
+        }
+    },
+
+    protected pointerLockChange: func() {
+
+        if (this.requestElement === null) {
+            return;
+        }
+
+        if (this.isActive()) {
+
+            document.addEventListener('mousemove', this, false);
+
+            this.trigger('pointerlock', true);
+            debug.log('pointer lock aquired');
+
+        } else {
+
+            document.removeEventListener('mousemove', this, false);
+            this.requestElement = null;
+
+            this.trigger('pointerlock', false);
+            debug.log('pointer lock lost');
+        }
+    },
+
+    /**
+     * request pointerlock for given DOM element
+     *
+     * @param element
+     * @return boolean true if required API found and not already having a pointerlock
+     */
+    public request: func(element) {
+
+        if (this.requestElement !== null) {
+            return false;
+        }
+
+        var reqPL = element.requestPointerLock ||
+                    element.webkitRequestPointerLock ||
+                    element.mozRequestPointerLock ||
+                    element.oRequestPointerLock;
+
+        if (typeof reqPL === 'function') {
+
+            this.requestElement = element;
+            reqPL.call(element);
+            debug.log('pointer lock requested');
+            return true;
+
+        } else {
+
+            console && console.warn('note: this browser does not appear to support pointer lock');
+            return false;
+        }
+    },
+
+    /**
+     * cancel pointerlock
+     *
+     * @return boolean true if required API found
+     */
+    public cancel: func() {
+
+        var endPL = document.exitPointerLock ||
+                    document.webkitExitPointerLock ||
+                    document.mozExitPointerLock ||
+                    document.oExitPointerLock;
+
+        if (typeof endPL === 'function') {
+
+            endPL.call(document);
+            return true;
+
+        } else {
+
+            console && console.warn('note: this browser does not appear to support pointer lock');
+            return false;
+        }
+    },
+
+    /**
+     * returns true if currently owning a pointer lock
+     *
+     * @return boolean
+     */
+    public isActive: func()  {
+
+        return this.requestElement !== null && (
+                    document.pointerLockElement === this.requestElement ||
+                    document.webkitPointerLockElement === this.requestElement ||
+                    document.mozPointerLockElement === this.requestElement ||
+                    document.oPointerLockElement === this.requestElement
+                );
+    },
+};

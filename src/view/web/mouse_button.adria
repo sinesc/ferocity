@@ -1,0 +1,78 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Listenable = require('astd/listenable');
+
+/**
+ * listenable mousebutton input
+ *
+ * @event mousedown(buttonCode, 'mousedown') triggered once when a button is pressed
+ * @event mouseup(buttonCode, 'mouseup') triggered once when a button is released
+ */
+module MouseButton = proto (Listenable) {
+
+    public buttonState: null,
+    protected hostElement: null,
+
+    public constructor: func(hostElement) {
+
+        this.buttonState = new Array(256);
+        
+        for (var i = 0; i < this.buttonState.length; ++i) {
+            this.buttonState[i] = false;
+        }
+        
+        this.hostElement = hostElement;
+        this.hostElement.addEventListener('mousedown', this, false);
+        this.hostElement.addEventListener('mouseup', this, false);
+    },
+
+    public destroy: func() {
+        
+        this.hostElement.removeEventListener('mousedown', this, false);
+        this.hostElement.removeEventListener('mouseup', this, false);
+    },
+
+    public handleEvent: func(e) {
+
+        if (e.type === 'mousedown') {
+            this.mouseDown(e);
+        } else if (e.type === 'mouseup') {
+            this.mouseUp(e);
+        }
+    },
+
+    protected mouseDown: func(e) {
+        
+        var buttonId = parseInt(e.button);
+        
+        if (this.buttonState[buttonId] !== true) {
+            this.buttonState[buttonId] = true;
+            this.execute('mousedown', buttonId, 'mousedown');
+        }
+    },
+
+    protected mouseUp: func(e) {
+        
+        var buttonId = parseInt(e.button);
+        
+        if (this.buttonState[buttonId] === true) {
+            this.buttonState[buttonId] = false;
+            this.execute('mouseup', buttonId, 'mouseup');
+        }
+    },
+};

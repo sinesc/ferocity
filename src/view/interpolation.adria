@@ -1,0 +1,95 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * linear increase until t hits gain, then decrease
+ *
+ * @param t current time
+ * @param gain result increases for increasing current <= gain
+ * @param decay result decreases for increasing current <= gain+decay, reaching 0 and capping at 0 for current = gain+decay
+ * @return result 0 <= result <= 1
+ */
+export peak = func(t, gain, decay) {
+    assert(gain > 0);
+    assert(decay > 0);
+    return (t < gain ? t / gain : 1 - Math.min(1, (t - gain) / decay));
+};
+
+/**
+ * various interpolation functions
+ */
+ 
+export linear = func(t, c) {
+    return c * t;
+};
+
+export quadraticIncrease = func(t, c) {
+    return c * t * t;
+};
+
+export quadraticDecrease = func(t, c) {
+
+    return -c * t * (t - 2);
+};
+
+export quadratic = func(t, c) {
+
+    t *= 2;
+    c *= 0.5;
+
+    if (t < 1) {
+        return c * t * t;
+    } else {
+        t--;
+        return -c * (t * (t - 2) - 1);
+    }
+};
+
+export quadraticCapped = func(t, c) {
+
+    if (t < 0.3333) {
+        return quadraticIncrease(t / 0.3333, c / 4);
+    } else if (t <= 0.6666) {
+        return linear((t - 0.3333) / 0.3333, c / 2) + c * 0.25;
+    } else {
+        return quadraticDecrease((t - 0.6666)  / 0.3333, c / 4) + c * 0.75;
+    }
+};
+
+export cubicIncrease = func(t, c) {
+    return c * t * t * t;
+};
+
+export cubicDecrease = func(t, c) {
+
+    t--;
+    return c * (t * t * t + 1);
+};
+
+export cubic = func(t, c) {
+
+    t *= 2;
+    c *= 0.5;
+
+    if (t < 1) {
+        return c * t * t * t;
+    } else {
+        t -= 2;
+        return c * (t * t * t + 2);
+    }
+};

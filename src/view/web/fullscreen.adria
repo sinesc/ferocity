@@ -1,0 +1,133 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Listenable = require('astd/listenable');
+
+/**
+ * listenable fullscreen
+ *
+ * @event fullscreen(active)
+ */
+module Fullscreen = proto (Listenable) {
+
+    protected requestElement: null,
+
+    public constructor: func() {
+
+        document.addEventListener('fullscreenchange', this, false);
+        document.addEventListener('mozfullscreenchange', this, false);
+        document.addEventListener('webkitfullscreenchange', this, false);
+        document.addEventListener('ofullscreenchange', this, false);
+    },
+
+    public destroy: func() {
+
+        document.removeEventListener('fullscreenchange', this, false);
+        document.removeEventListener('mozfullscreenchange', this, false);
+        document.removeEventListener('webkitfullscreenchange', this, false);
+        document.removeEventListener('ofullscreenchange', this, false);
+    },
+
+    public handleEvent: func(e) {
+
+        if (this.requestElement === null) {
+            return;
+        }
+
+        if (this.isActive()) {
+
+            this.trigger('fullscreen', true);
+            debug.log('fullscreen aquired');
+
+        } else {
+
+            this.requestElement = null;
+            this.trigger('fullscreen', false);
+            debug.log('fullscreen lost');
+        }
+    },
+
+    /**
+     * request fullscreen for given DOM element
+     *
+     * @param element
+     * @return boolean true if required API found and not already using fullscreen
+     */
+    public request: func(element) {
+
+        if (this.requestElement !== null) {
+            return false;
+        }
+
+        var reqFull = element.requestFullscreen ||
+                      element.webkitRequestFullscreen ||
+                      element.mozRequestFullScreen ||
+                      element.oRequestFullscreen;
+
+        if (typeof reqFull === 'function') {
+
+            this.requestElement = element;
+            reqFull.call(element);
+            debug.log('fullscreen requested');
+            return true;
+
+        } else {
+
+            console && console.warn('note: this browser does not appear to support fullscreen');
+            return false;
+        }
+    },
+
+    /**
+     * cancel fullscreen
+     *
+     * @return boolean true if required API found
+     */
+    public cancel: func() {
+
+        var endFull = document.exitFullscreen ||
+                      document.webkitExitFullscreen ||
+                      document.mozCancelFullScreen ||
+                      document.oExitFullscreen;
+
+        if (typeof endFull === 'function') {
+
+            endFull.call(document);
+            return true;
+
+        } else {
+
+            console && console.warn('note: this browser does not appear to support fullscreen');
+            return false;
+        }
+    },
+
+    /**
+     * returns true if currently using fullscreen mode
+     *
+     * @return boolean
+     */
+    public isActive: func()  {
+
+        return this.requestElement !== null && (
+                    document.fullscreenElement === this.requestElement ||
+                    document.webkitFullscreenElement === this.requestElement ||
+                    document.mozFullScreenElement === this.requestElement ||
+                    document.oFullScreenElement === this.requestElement
+                );
+    },
+};

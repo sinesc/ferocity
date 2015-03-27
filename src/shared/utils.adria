@@ -1,0 +1,24 @@
+
+/**
+ * returns time in seconds relative to given time
+ *
+ * @return relative time
+ */
+export now = (func() {
+
+    import performance;
+
+    if (typeof performance === 'object' && typeof performance.now === 'function') {
+
+        return func(offset) {
+            return performance.now() / 1000 - (offset === undefined ? 0 : offset);
+        };
+
+    } else {
+
+        return func(offset) {
+            return Date.now() / 1000 - (offset === undefined ? 0 : offset);
+        };
+    }
+
+})();

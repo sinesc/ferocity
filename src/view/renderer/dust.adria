@@ -1,0 +1,58 @@
+/*
+ * tq2d JavaScript Sidescroller Engine
+ * Copyright (C) 2013 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Renderer = require('../renderer');
+
+/**
+ * Dust, very similar to Renderer, but upscales sprite during fade
+ *
+ * @param sprite id
+ */
+module Dust = proto (Renderer) {
+    constructor: func(sprite) {
+
+        Renderer.call(this, sprite);
+    }
+};
+
+Dust::fadeScale = 5;
+Dust::layer = 1;
+
+/**
+ * draws the sprite
+ *
+ * @param x
+ * @param y
+ */
+Dust::draw = func(x, y) {
+
+    assert(typeof x === 'number');
+    assert(typeof y === 'number');
+
+    if (this.active !== true) {
+        return;
+    }
+
+    var frameId = (this.forceFrame !== -1 ? Math.round(this.forceFrame) : this.getFrameId());
+
+    var factor = this.fadeFactor;
+    var upscale = 1 + (1 - factor) * this.fadeScale;
+
+    if (frameId >= 0) {
+        application.vctx[this.layer].drawSprite(this.sprite, frameId, x + this.offsetX, y + this.offsetY, this.composite, this.alpha * Math.sqrt(factor), this.angle, this.scaleX * upscale, this.scaleY * upscale);
+    }
+};

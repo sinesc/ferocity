@@ -1,0 +1,12 @@
+{
+    "depend": "config.inc",
+    "files": [
+        "view/main.adria"
+    ],
+    "outFile": "../www/view.js",
+    "basePath": "./",
+    "paths": [ "./view/", "./shared/", "../../outsourcedlib/", "../../radiantlib/", "../../astdlib/" ],
+    "extension": ".adria",
+    "platform": "web",
+    "headerFile": "../license-header"
+}

@@ -1,0 +1,66 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Engine = require('engine');
+//var Radiant = require('radiant/radiant');
+
+var GameLevel = require('game/level');
+
+module GameEngine = proto (Engine) {
+
+    public level: null,
+    public keyState: null,
+    public buttonState: null,
+
+    public constructor: func(object host, string colliderURL) {
+
+        parent->constructor(host, colliderURL);
+
+        this.keyState = this.keyboard.keyState;
+        this.buttonState = this.mouseButton.buttonState;
+    },
+
+    protected started: func() {
+
+        this.level = new GameLevel();
+        this.level.populate();
+
+        this.pointerLock.on('mousemove', this, func(finite dx, finite dy) {
+            this.level.player.x+=dx;
+            this.level.player.y+=dy;
+        });
+
+        // first button press to aquire fullscreen, afterwards forward to player
+
+        this.fullscreen.on('fullscreen', this, func(active) {
+            this.mouseButton.once('mousedown', this, func(button) {
+                this.fullscreen.request(this.radiant.canvas);
+            });
+        });
+
+        this.mouseButton.once('mousedown', this, func(button) {
+            this.fullscreen.request(this.radiant.canvas);
+        });
+    },
+
+    protected mainLoop: func() {
+
+        this.level.frame();
+//            this.runTimedEvents();
+    },
+
+};

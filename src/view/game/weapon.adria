@@ -1,0 +1,213 @@
+/*
+ * tq2d JavaScript Sidescroller Engine
+ * Copyright (C) 2013 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Projectile = require('game/projectile');
+var deg2rad = require('geometry').deg2rad;
+
+/**
+ * Weapon drop-in base
+ */
+module Weapon = proto {
+
+    /**
+     * enemy weapon fire scaling. by default a factor of 20 will be applied to
+     * cooldown and/or interval
+     */
+    public ES_COOLDOWN  : 20,
+    public ES_INTERVAL  : 21,
+    public ES_BOTH      : 22,
+    public ES_NONE      : 23,
+    public enemyScaling : Weapon::ES_INTERVAL,
+
+    /**
+     * weapon slot to use
+     */
+    public SLOT_PRIMARY     : 10,
+    public SLOT_SECONDARY   : 11,
+    public SLOT_SHIELD      : 12,
+    public slot             : Weapon::SLOT_PRIMARY,
+
+    /**
+     * mount type (single turrent, mulitple turrets...)
+     */
+    public MOUNT_SINGLE     : 30,
+    public MOUNT_DUAL       : 31,
+    public MOUNT_SPECIAL    : 32,
+    public mountType        : Weapon::MOUNT_SINGLE,
+
+    /**
+     * projectile constructor
+     */
+    public Projectile: Projectile,
+    
+    /**
+     * shot interval (within a burst, if cooldown is used)
+     */
+    public interval: 0.25,
+
+    /**
+     * cooldown between bursts
+     */
+    public cooldown: 0.25,
+
+    /**
+     * frame time the next shot may be fired
+     */
+    public nextShot: 0.0,
+    
+    /**
+     * can be used within a burst to track the current shot. -1 indicates the weapon is in cooldown.
+     * will be reset to 0 after recovery has expired
+     */
+    public whichShot: 0,
+
+    /**
+     * weapon damage. for burst weapons, the this should be the total damage of the burst
+     */
+    public damage: 10,
+
+    /**
+     * energy usage per shot
+     */
+    public energyUsage: 4,
+
+    /**
+     * projectile spawn offset
+     */
+    public offsetX: 0,
+    public offsetY: 0,
+
+    /**
+     * initial firing sound
+     */
+    public sound: null,
+    public soundPriority: 3,
+
+    /**
+     * silence projectile (not the initial firing sound, set Weapon::sound to null for that)
+     */
+    public silenceShot: false,
+
+    /**
+     * constructor
+     *
+     * @param Entity owner
+     * @param finite slotOverride
+     */
+    public constructor: func(object owner, finite slotOverride = this.slot) {
+
+        this.owner = owner;
+        this.nextShot = application.frameTime;
+        this.slot = slotOverride;
+
+        if (this.sound !== null) {
+            //application.loader.audio(this.sound);
+        }
+    },
+
+    /**
+     * unsets the owner reference the help out the garbage collector (circular reference)
+     */
+    public destroy: func() {
+
+        this.owner = null;
+    },
+
+    /**
+     * returns true if the weapon is ready to fire
+     */
+    public isReady: prop {
+        get: func() {
+            return this.owner !== null && application.frameTime > this.nextShot;
+        }
+    },
+
+    /**
+     * returns true while the weapon is in cooldown. a players shield will recharge while the weapon
+     * is cooling down, unlike during a normal interval wait
+     */
+    public isCoolingDown: prop {
+        get: func() {
+            return this.whichShot === -1 && application.frameTime < this.nextShot;
+        }
+    },
+
+    /**
+     * fires the weapon and handles most of the interval+cooldown mechanics
+     * if possible, override doFire() instead
+     *
+     * @param angle projectile angle
+     * @param distance distance along projectile angle to offset the spawn point
+     */
+    public fire: func(finite angle = 180, finite distance = 0) {
+
+        var now = application.frameTime;
+        var enterInterval;
+
+        // reset burst after cooldown ms idle
+
+        if (this.nextShot < now - this.cooldown) {
+            this.whichShot = 0;
+        }
+
+        // for doFire() implementation convenience, calulate absolute firing position (single mounts only)
+
+        if (this.sound !== null) {
+            application.audio.playDirectional(this.sound, this.soundPriority, this.owner.x, this.owner.y, this.owner.velocityX, this.owner.velocityY);
+        }
+
+        if (this.mountType === this.MOUNT_SINGLE) {
+
+            var startX = this.owner.x + this.offsetX + Math.cos(angle * deg2rad) * distance;
+            var startY = this.owner.y + this.offsetY + Math.sin(angle * deg2rad) * distance;
+            enterInterval = this.doFire(angle, distance, startX, startY);
+
+        } else {
+
+            enterInterval = this.doFire(angle, distance, 0, 0);
+        }
+
+        // perform the actual firing. if doFire returns something other than true, enter cooldown
+
+        if (enterInterval !== true) {
+
+            this.whichShot = -1;
+            this.nextShot = now + this.cooldown;
+
+        } else {
+
+            this.nextShot = now + this.interval;
+        }
+    },
+
+    /**
+     * performs the show spawn. return true to fire another shot in interval ms, otherwise the weapons
+     * cooldown phase will be entered
+     *
+     * @param angle angle to spawn projectile at
+     * @param distance distance along projectile angle to offset the spawn point (already included in startX/Y, may be useful if the angle is to be ignored)
+     * @param startX calculated firing position based on angle and distance
+     * @param startY calculated firing position based on angle and distance
+     */
+    public doFire: func(finite angle, finite distance, finite startX, finite startY) {
+
+        // this weapon does nothing. it is the default weapon used when a slot is "empty"
+        return true;
+    },
+};
+
+

@@ -1,0 +1,87 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+module Measured = proto {
+
+    public velocityX: 0,
+    public velocityY: 0,
+    public accelerationX: 0,
+    public accelerationY: 0,
+
+    private previousX: 0,
+    private previousY: 0,
+    private previousVelocityX: 0,
+    private previousVelocityY: 0,
+
+    /**
+     * calculate renderer frame based on entity acceleration on the y-axis
+     *
+     * @param object renderer renderer to set forceFrame in
+     * @param string axis to measure
+     * @param finite accelerationFactor determines how quickly acceleration will cause the entity to deviate from the center-frame
+     * @param finite decelerationFactor determines how quickly the entity returns to the center-frame
+     * @param finite velocityTreshold velocity below which a rotation towards the center frame is triggered
+     * @param finite delta frame delta
+     */
+    public motionFrameY: func(object renderer, string axis = 'y', finite accelerationFactor = 1.0, finite decelerationFactor = 0.5, finite velocityTreshold = 15.0, finite delta = application.frameDelta) {
+
+        var frames          = renderer.sprite.frames.length;
+        var centerFrame     = Math.round(frames / 2);
+        var selectedFrame   = renderer.forceFrame;
+        var acceleration    = axis === 'y' ? this.accelerationY : this.accelerationX;
+        var velocity        = Math.abs(axis === 'y' ? this.velocityY : this.velocityX)
+
+        // rotate away from center frame on vertical acceleration
+
+        selectedFrame += acceleration * accelerationFactor * 0.01 * delta;
+
+        // generally rotate towards center frame
+
+        if (Math.round(selectedFrame) !== centerFrame && velocity < velocityTreshold) {
+            selectedFrame += (centerFrame - selectedFrame).sgn * decelerationFactor * delta;
+        }
+
+        renderer.forceFrame = Math.min(frames -1, Math.max(0, selectedFrame));
+    },
+
+    /**
+     * measure entity velocity and accelleration
+     *
+     * @param finite delta frame delta
+     */
+    public measure: func(finite delta = application.frameDelta) {
+
+        // calculate new velocity and acceleration, don't apply velocity yet
+
+        var velocityX = (this.x - this.previousX) / delta;
+        var velocityY = (this.y - this.previousY) / delta;
+        this.accelerationX = (this.velocityX - this.previousVelocityX) / delta;
+        this.accelerationY = (this.velocityY - this.previousVelocityY) / delta;
+
+        // save old position and velocity
+
+        this.previousX = this.x + 0.0;
+        this.previousY = this.y + 0.0;
+        this.previousVelocityX = this.velocityX + 0.0;
+        this.previousVelocityY = this.velocityY + 0.0;
+
+        // store computed velocity
+
+        this.velocityX = velocityX;
+        this.velocityY = velocityY;
+    },
+};

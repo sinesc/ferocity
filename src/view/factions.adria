@@ -1,0 +1,60 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+module Factions = proto {
+
+    protected idToName: null,
+    protected nameToId: null,
+
+    public constructor: func() {
+
+        this.idToName = [ ];
+        this.nameToId = { };
+    },
+
+    public add: func(names) {
+
+        for (var i = 0, len = names.length; i < len; i++) {
+            var id = this.idToName.insert(names[i]);
+            this.nameToId[names[i]] = id;
+        }
+    },
+
+    public clear: func() {
+
+        this.idToName = [ ];
+        this.nameToId = [ ];
+    },
+
+    public getByName: func(string name) {
+
+        assert(typeof this.nameToId[name] !== 'undefined');
+        return this.nameToId[name];
+    },
+
+    public getById: func(finite id) {
+
+        assert(id < this.idToName.length);
+        return this.idToName[id];
+    },
+
+    public length: prop {
+        get: func() {
+            return this.idToName.length;
+        }
+    }
+};

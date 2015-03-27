@@ -1,0 +1,312 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Glow = require('./glow');
+var ip = require('../interpolation');
+var Color = require('radiant/radiant').Color;
+
+var maxSize     = 0;
+var maxX        = 0;
+var maxY        = 0;
+var maxSprite   = -1;
+
+/**
+ * Renders the sprite multiple times moving outward from a common center. The effect will only play
+ * once and has to be triggered using start()
+ *
+ * @param sprite id
+ */
+module Explode = proto (Glow) {
+
+    public spriteName: 'sprite/explosion/default_128x128x40.jpg',
+    public alpha: 0.65,
+
+    public glowAlpha: 0.6,
+    public glowColorR: 1.0,
+    public glowColorG: 0.8,
+    public glowColorB: 0.6,
+    public glowScale: 5,
+
+    /**
+     * time until explosion glow reaches maximum (percent of animation duration)
+     */
+    public glowGain: 35,
+
+    /**
+     * time until explosion glow fades back to zero (percent of animation duration)
+     */
+    public glowDecay: 35,
+
+    /**
+     * minimum number of explosions
+     */
+    public expMinEffects: 5,
+
+    /**
+     * maximum number of explosions
+     */
+    public expMaxEffects: 6,
+
+    /**
+     * maximum distance from center for explosions to spawn
+     */
+    public expMaxRadius: 75.0,
+
+    /**
+     * interval between animation start for the individual sprites
+     */
+    public expInterval: 0.15,
+
+    /**
+     * restart explosion once done
+     */
+    public continuous: false,
+
+    /**
+     * internal
+     */
+    protected active: false,
+    protected expT: 0,          //!todo use astd/random for repeatable "random" instead
+    protected expR: null,
+    protected expA: null,
+    protected expD: null,
+
+    /**
+     * attempts to set new maximum for all explosion effects (if provided size greater currently known maximum)
+     *
+     * @param size
+     * @param x
+     * @param y
+     * @param sprite
+     */
+    public updateGlobalMaximum: func(size, x, y, sprite) {
+
+        if (size > maxSize + 0.5) {
+
+            maxSize     = size;
+            maxX        = x;
+            maxY        = y;
+            maxSprite   = sprite;
+        }
+    },
+
+    /**
+     * returns object containing global data and resets global maximum
+     */
+    public postProcess: func() {
+
+        var alpha = Math.min(0.2, maxSize / 20);
+        var scale = Math.min(40, maxSize * maxSize * maxSize) / 2;
+
+        if (maxSprite !== -1) {
+            //application.vctx[2].drawSprite(maxSprite, 0, maxX, maxY, this.CMP_BLEND, alpha, 0, scale);
+        }
+
+        maxSize /= 2; //-= Math.min(this.backgroundGlow, delta);
+        maxX -= application.frameDelta;
+    },
+
+    /**
+     * triggers the explosion effect
+     *
+     * @return time the effect will take
+     */
+    public start: func() {
+
+        this.active     = true;
+        this.expT       = application.frameTime;
+        this.expR       = [];
+        this.expA       = [];
+        this.expD       = [];
+
+        // always create one centered explosion
+
+        this.expR.push(0);
+        this.expD.push(0);
+        this.expA.push(0);
+
+        // add some explosions around it
+
+        var numExplosions = Math.headDist(this.expMaxEffects - this.expMinEffects) + this.expMinEffects;
+
+        for (var i = 0; i < numExplosions -1; i++) {
+            this.expR.push(Math.random() * this.expMaxRadius);
+            this.expD.push(Math.random() * 360);
+            this.expA.push(Math.random() * 360);
+        }
+
+        // return total amount of time required to play through the effect
+
+        return this.continuous ? 99999999 : (numExplosions * this.expInterval) + (this.sprite.numFrames / this.FPS);
+    },
+
+    /**
+     * draws the sprite
+     *
+     * @param x
+     * @param y
+     */
+    public draw: func(finite x, finite y) {
+
+        if (this.active !== true) {
+            return;
+        }
+
+        var offset, frameId;
+        var rendered = 0;
+        var maxGlow = 0;
+        var frameTime = application.frameTime;
+
+        // render explosion sprites
+
+        for (var i = 0; i < this.expR.length; i++) {
+
+            // calculate frame
+
+            offset = this.expT + i * this.expInterval;
+            frameId = Math.round((frameTime - offset + this.offsetT) * this.FPS);
+
+            // draw all explosions that aren't yet finished
+
+            if (frameId < 0) {
+
+                rendered++;
+
+            } else if (frameId < this.sprite.numFrames) {
+
+                // calculate maximum glow brightness for current frame (of all animation sprites)
+
+                var framePerc = (frameId + 1) / this.sprite.numFrames;
+
+                maxGlow = Math.max(maxGlow, ip.peak(framePerc, this.glowGain / 100, this.glowDecay / 100));
+
+                this.polarOffset(this.expD[i], this.expR[i]);
+
+                application.scene.addSprite(
+                    (i+1) % 2 * 2,
+                    this.composite,
+                    this.sprite,
+                    frameId,
+                    x + this.offsetX,
+                    y + this.offsetY,
+                    Color.rgba1(this.colorR, this.colorG, this.colorB, (i === 0 ? Math.sqrt(this.alpha) : this.alpha)),
+                    this.expA[i],
+                    this.scaleX,
+                    this.scaleY
+                );
+
+                rendered++;
+            }
+        }
+
+        // render glow at the maximum brightness established for any of the sprites rendered
+
+        if (rendered > 0 && this.glow !== null) {
+
+            var color = KToRGB(1500 + maxGlow * maxGlow * maxGlow * maxGlow * 13500);
+
+            application.scene.addSprite(
+                this.glowLayer,
+                this.composite,
+                this.glowSprite,
+                0,
+                x + this.offsetX,
+                y + this.offsetY,
+                Color.rgba1(color.r, color.g, color.b, this.glowAlpha * maxGlow),
+                0,
+                this.glowScale * maxGlow
+                //this.glowScale * maxGlow
+                // this.origin !todo
+            );
+        }
+
+        // remember brightest explosion for postprocessing
+
+        this.updateGlobalMaximum(this.glowScale * maxGlow, x, y, this.glowSprite);
+
+        // if none were rendered, the animation is done
+
+        if (rendered === 0) {
+            if (this.continuous !== true) {
+                this.active = false;
+            } else {
+                this.expT = frameTime;
+            }
+        }
+    },
+};
+
+// http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
+
+func KToRGB(Temperature) {
+
+    Temperature = Temperature / 100;
+
+    var Red, Green, Blue;
+
+    if (Temperature <= 66){
+        Red = 255;
+    } else {
+        Red = Temperature - 60;
+        Red = 329.698727466 * Math.pow(Red, -0.1332047592);
+        if (Red < 0){
+            Red = 0;
+        }
+        if (Red > 255){
+            Red = 255;
+        }
+    }
+
+    if (Temperature <= 66){
+        Green = Temperature;
+        Green = 99.4708025861 * Math.log(Green) - 161.1195681661;
+        if (Green < 0 ) {
+            Green = 0;
+        }
+        if (Green > 255) {
+            Green = 255;
+        }
+    } else {
+        Green = Temperature - 60;
+        Green = 288.1221695283 * Math.pow(Green, -0.0755148492);
+        if (Green < 0 ) {
+            Green = 0;
+        }
+        if (Green > 255) {
+            Green = 255;
+        }
+    }
+
+    if (Temperature >= 66){
+        Blue = 255;
+    } else {
+        if (Temperature <= 19){
+            Blue = 0;
+        } else {
+            Blue = Temperature - 10;
+            Blue = 138.5177312231 * Math.log(Blue) - 305.0447927307;
+            if (Blue < 0){
+                Blue = 0;
+            }
+            if (Blue > 255){
+                Blue = 255;
+            }
+        }
+    }
+
+    return { r: Red / 255, g: Green / 255, b: Blue / 255 };
+}

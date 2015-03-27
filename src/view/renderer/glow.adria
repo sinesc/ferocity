@@ -1,0 +1,99 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Renderer = require('../renderer');
+var Color = require('radiant/radiant').Color;
+
+module Glow = proto (Renderer) {
+
+    public layer: 0,
+    public composite: Glow::CMP_LIGHTEN,
+
+    public glowColorR: 1.0,
+    public glowColorG: 1.0,
+    public glowColorB: 1.0,
+    public glowAlpha: 1.0,
+
+    public glowScale: 1,
+    public glowAngle: NaN,
+
+    public glowSpriteName: 'sprite/glow/basic_256x256x1.png',
+    public glowSprite: null,
+
+    public glowLayer: 2,
+
+    /**
+     * constructor
+     *
+     * @param string spriteName specify to override default (if any)
+     * @param string glowSpriteName specify to override default (if any)
+     */
+    public constructor: func(string spriteName = this.spriteName, string glowSpriteName = this.glowSpriteName) {
+
+        Renderer->constructor(spriteName);
+
+        this.glowSpriteName = glowSpriteName;
+        this.glowSprite = application.loadSprite(this.glowSpriteName);
+        assert(this.glowSprite !== null);
+    },
+
+    /**
+     * draws the sprite
+     *
+     * @param finite x
+     * @param finite y
+     */
+    public draw: func(finite x, finite y) {
+
+        assert(this.layer < 10);
+
+        if (this.active !== true) {
+            return;
+        }
+
+        var factor = this.fadeFactor;
+
+        application.scene.addSprite(
+            this.glowLayer,
+            this.composite,
+            this.glowSprite,
+            0,
+            x + this.offsetX,
+            y + this.offsetY,
+            Color.rgba1(this.glowColorR, this.glowColorG, this.glowColorB, this.glowAlpha * factor * factor * factor),
+            isNaN(this.glowAngle) ? this.angle : this.glowAngle,
+            this.glowScale,
+            this.glowScale
+            // this.origin !todo
+        );
+
+        application.scene.addSprite(
+            this.layer,
+            this.composite,
+            this.sprite,
+            this.getFrameId(),
+            x + this.offsetX,
+            y + this.offsetY,
+            Color.rgba1(this.colorR, this.colorG, this.colorB, this.alpha * factor),
+            this.angle,
+            this.scaleX,
+            this.scaleY
+            // this.origin !todo
+        );
+    },
+};
+

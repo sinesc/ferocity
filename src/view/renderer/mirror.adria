@@ -1,0 +1,110 @@
+/*
+ * tq2d JavaScript Sidescroller Engine
+ * Copyright (C) 2013 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Glow = require('./glow');
+var ip = require('../interpolation');
+
+/**
+ * Mirror renderer, renders 2 sprite frames with the second in a slightly different size and reduced opacity
+ *
+ * @param sprite
+ * @param offsetX optional, sprite offset relative to entity (note a sprite coordinates originite in its center)
+ * @param offsetY optional, sprite offset relative to entity (note a sprite coordinates originite in its center)
+ * @param glowColor optional, glow color (glow effect image required)
+ * @param glowScale optional, glow scale
+ */
+module Mirror = proto (Glow) { };
+
+/**
+ * timeindex for fading to start
+ */
+Mirror::fadeStart = -1;
+
+/**
+ * fade duration
+ */
+Mirror::fadeDuration = 1;
+
+/**
+ * time until glow reaches maximum (percent of full fade duration)
+ */
+Mirror::glowGain = 15;
+
+/**
+ * time until glow fades back to zero (percent of full fade duration)
+ */
+Mirror::glowDecay = 30;
+
+/**
+ * fade sprite
+ *
+ * @param start optional starttime
+ * @param duration fade duration
+ */
+Mirror::fade = func(start, duration) {
+
+    if (duration === undefined) {
+        duration = start;
+        start = application.frameTime;
+    }
+
+    this.fadeStart = start;
+    this.fadeDuration = duration;
+};
+
+/**
+ * draws the sprite
+ *
+ * @param x
+ * @param y
+ */
+Mirror::draw = func(x, y) {
+
+    if (this.active !== true) {
+        return;
+    }
+
+    var frameId = this.getFrameId();
+    var alpha = this.alpha;
+    var value;
+    var ctx = application.vctx;
+
+    // check if fade has started
+
+    if (this.fadeStart !== -1 && this.fadeStart < application.frameTime) {
+
+        var framePerc = Math.min(1, (application.frameTime - this.fadeStart) / this.fadeDuration);
+
+        // sprite alpha and base glow alpha/scale
+
+        alpha *= (1 - framePerc);
+        value = ip.peak(framePerc, this.glowGain / 100, this.glowDecay / 100);
+
+        // glow alpha and draw
+
+        ctx[0].drawSprite(this.glow, 0, x + this.offsetX, y + this.offsetY, this.CMP_BLEND, value * this.glowAlpha, this.angle, this.glowScale * value);
+    }
+
+    if (this.fadeStart === -1) {
+        ctx[0].drawSprite(this.glow, 0, x + this.offsetX, y + this.offsetY, this.CMP_BLEND, this.glowAlpha * 0.5, this.angle, this.glowScale * 0.1);
+    }
+
+    ctx[1].drawSprite(this.sprite, frameId, x + this.offsetX, y + this.offsetY, this.composite, alpha * 0.9, this.angle);
+
+    var size = Math.random() * 0.5 + 1;
+    ctx[1].drawSprite(this.sprite, frameId, x + this.offsetX, y + this.offsetY, this.composite, alpha * 0.5, this.angle, size);
+};

@@ -1,0 +1,166 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Collidable = require('collidable');
+
+/**
+ * a single sector within a collision grid
+ */
+module Sector = proto {
+
+    protected factions      : null,
+    protected numColliders  : 0,
+
+    public tests            : 0,
+
+    /**
+     * construct new sector
+     *
+     * @param finite factions number of factions to support
+     */
+    public constructor: func(finite factions) {
+
+        this.factions = [ ];
+
+        for (var id = 0; id < factions; id++) {
+            this.factions[id] = [ ];
+        }
+    },
+
+    /**
+     * clears the sector, removing all contained entities
+     */
+    public clear: func() {
+
+        for (var id = 0, len = this.factions.length; id < len; id++) {
+            this.factions[id].length = 0;
+        }
+
+        this.numColliders = 0;
+        this.tests = 0;
+    },
+
+    /**
+     * adds an entity to the sector
+     *
+     * @param Entity entity
+     */
+    public add: func(object entity) {
+
+        assert(this.factions[entity.factionId] !== undefined);
+
+        this.factions[entity.factionId].push(entity);
+        this.numColliders++;
+    },
+
+    /**
+     * test all entities in sector for collision
+     *
+     * @param object collisionMap string=>true entity pair map (colliding entity pairs)
+     */
+    public test: func(object collisionMap) {
+
+        var collidables, collidableId;
+        var collisions = 0;
+
+        for (var factionId = 0, len = this.factions.length; factionId < len; factionId++) {
+
+            collidables = this.factions[factionId];
+            collidableId = collidables.length;
+
+            // if a single faction contains all collidables, there can be no collision
+
+            if (collidableId === this.numColliders) {
+                return false;
+            }
+
+            while (collidableId--) {
+                collisions += this.testCollidable(collidables[collidableId], collisionMap);
+            }
+        }
+
+        return collisions;
+    },
+
+    /**
+     * test single collidable for collision with all other collidables
+     *
+     * @param Collidable subject collidable to test
+     * @param object collisionMap { pairId1 => [ entityA, entityB, ellipseIdA, ellipseIdB ], pairId2 => ... }
+     */
+    protected testCollidable: func(Collidable subject, object collisionMap) {
+
+        var collidables, collidableId, hash;
+        var subjectBounds, collidableBounds, intersection;
+        var count = 0;
+
+        // test all factions this entity collides with
+
+        for (var i = 0, len = subject.collisionFactionIds.length; i < len; i++) {
+
+            assert(this.factions[subject.collisionFactionIds[i]] !== undefined, 'faction not defined');
+            assert(subject.collisionFactionIds[i] !== subject.factionId, 'collision within faction not permitted');
+
+            collidables = this.factions[subject.collisionFactionIds[i]];
+            collidableId = collidables.length;
+            subjectBounds = subject.bounds;
+
+            // test all bounds in this faction
+
+            while (collidableId--) {
+
+                this.tests++;
+                collidableBounds = collidables[collidableId].bounds;
+
+                if (collidableBounds !== null && subjectBounds !== null && collidableBounds !== subjectBounds) {
+
+                    // get array of intersecting ellipse-ids or null
+
+                    intersection = subjectBounds.intersects(collidableBounds);
+
+                    if (intersection != null) {
+
+                        hash = this.hashPair(collidableBounds, subjectBounds);
+
+                        if (collisionMap[hash] === undefined) {
+
+                            collisionMap[hash] = [ subject, collidables[collidableId], intersection[0], intersection[1] ];
+                            count++;
+                        }
+                    }
+                }
+            }
+        }
+
+        return count;
+    },
+
+    /**
+     * returns a hash that uniquely identifies the given bounds pair
+     *
+     * @param bound1 bounds object
+     * @param bound2 bounds object
+     */
+    protected hashPair: func(bound1, bound2) {
+
+        if (bound1.id < bound2.id) {
+            return bound1.id + ':' + bound2.id;
+        } else {
+            return bound2.id + ':' + bound1.id;
+        }
+    },
+};

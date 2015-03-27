@@ -1,0 +1,75 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Bounds = require('./bounds');
+
+module Collidable = proto {
+
+    /**
+     * id given by view
+     */
+    public id: 0,
+
+    public x: 0.0,
+    public y: 0.0,
+    public angle: 0.0,
+    public factionId: 0,
+    public suspended: false,
+
+    public collisionFactionIds: null,
+    public bounds: null,
+
+    public constructor: func(finite id, finite x, finite y, finite angle, finite factionId) {
+
+        this.id = id;
+        this.x = x;
+        this.y = y;
+        this.angle = angle;
+        this.factionId = factionId;
+        this.collisionFactionIds = [ ];
+    },
+
+    /**
+     * adds a faction id to the list of factions to check collision with
+     *
+     * @param finite factionId
+     */
+    public addCollisionFaction: func(finite factionId) {
+        this.collisionFactionIds.insert(factionId);
+    },
+
+    /**
+     * creates or adds a bounding ellipse to the entity
+     *
+     * @param finite ellipseH ellipse horizontal size
+     * @param finite ellipseV ellipse vertical size
+     * @param finite ellipseAngle ellipse rotation angle
+     * @param finite ellipseOffsetDistance offset distance from origin
+     * @param finite ellipseOffsetAngle offset rotation angle
+     * @param finite ellipseOcclusion occlusion factor for background objects
+     * @return boundary id, as reported during collisions
+     */
+    public addBounds: func(ellipseH, ellipseV, ellipseAngle, ellipseOffsetDistance, ellipseOffsetAngle, ellipseOcclusion) {
+
+        if (this.bounds === null) {
+            this.bounds = new Bounds(this, ellipseH, ellipseV, ellipseAngle, ellipseOffsetDistance, ellipseOffsetAngle, ellipseOcclusion);
+            return 0;
+        } else {
+            return this.bounds.addEllipse(ellipseH, ellipseV, ellipseAngle, ellipseOffsetDistance, ellipseOffsetAngle, ellipseOcclusion);
+        }
+    },
+};

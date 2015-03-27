@@ -1,0 +1,43 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+require('astd/prototype').extend();
+var BufferExchange = require('outsourced/buffer_exchange');
+var Collider = require('./collider');
+var utils = require('utils');
+
+// set up buffer exchange
+
+application(Collider);
+
+var bex = new BufferExchange(window);
+var usage = 0.0;
+
+bex.on('data', func(readBuffer, sourceId) {
+
+    var start = utils.now();
+    var writeBuffer = bex.getWriteBuffer();
+
+    application.writeBuffer(writeBuffer.data);      // sets send buffer (!todo need to work on naming)
+    application.reportUsage(usage);                 // include usage from previous frame in response
+    application.readBuffer(readBuffer.data);        // executes the received buffer
+
+    readBuffer.release();                           // release received buffer: becomes reusable again
+    writeBuffer.release();                          // release send-buffer: transfer to recipient
+
+    usage = utils.now() - start;
+});

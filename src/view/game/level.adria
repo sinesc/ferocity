@@ -1,0 +1,119 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Level = require('level');
+var Radiant = require('radiant/radiant');
+
+var Configurable = require('game/configurable');
+var Asteroid = require('game/hostile/asteroid');
+var Projectile = require('game/projectile');
+
+var Player = proto (Configurable) {
+    protected faction: 'friendly',
+    protected collisionFactions: [ 'hostile', 'chaos' ],
+    protected baseSprites: [ 'sprite/hostile/mine_green_64x64x15.png' ],
+};
+
+var PlayerProjectile = proto (Projectile) {
+    protected faction: 'friendly',
+    protected collisionFactions: [ 'neutral', 'hostile', 'chaos' ],
+};
+
+module GameLevel = proto (Level) {
+
+    protected factionNames: [ 'friendly', 'neutral', 'hostile', 'chaos' ],
+    protected x: 0.0,
+    protected y: 0.0,
+protected lastShot: 0.0,
+
+    protected stats: null,
+
+    /**
+     * constructor
+     *
+     * @param Level? previous optional previous level from which to copy existing entities/factions
+     */
+    public constructor: func(Level? previous = null) {
+
+        parent->constructor(previous);
+
+        this.font = new Radiant.Font(application.radiant, '14px Tahoma');
+
+        this.stats = {
+            delta: new Math.Series(1, 1),
+            main: new Math.Series(1, 1),
+            collider: new Math.Series(1, 1),
+        };
+    },
+
+    public populate: func() {
+
+        for (var i = 0; i < 5000; i++) {
+            this.addEntity(Asteroid, [ 600 + Math.randInt(0, 6000), 25 + Math.randInt(0, 500), Math.rand(0.1, 0.9) ]);
+        }
+
+        var player = this.addEntity(Player, [ 200, 200 ]);
+        player.addBounds(20, 20);
+
+        player.collision = func(other) {
+            //console.log(other);
+        };
+
+        this.player = player;
+    },
+
+    public frame: func() {
+
+        this.x += application.frameDelta * 50;
+
+        var now = application.frameTime;
+
+        if (application.buttonState[0] && (now > this.lastShot + 0.1)) {
+            this.addEntity(PlayerProjectile, [ this.player.x - this.x, this.player.y - this.y ]);
+            this.lastShot = now;
+        }
+
+        parent->frame();
+
+        // debug output
+
+        var scene = application.scene;
+        var sprites = scene.sprites;
+
+        application.radiant.clear();
+        application.scene.draw();
+
+        var state = application.processState;
+        this.stats.delta.set(application.frameDelta * 1000);
+        this.stats.main.set((state.mainUsage + state.mainColliderUsage) * 1000);
+        this.stats.collider.set(state.colliderUsage * 1000);
+
+        if (this.font.ready) {
+            application.scene.text.write(this.font, 'gl-draws  : ' + sprites.debugDrawCount, 20, 20, Radiant.Color.GREEN, 0);
+            application.scene.text.write(this.font, 'draws     : ' + scene.debugDrawCount, 20, 40, Radiant.Color.GREEN, 0);
+            application.scene.text.write(this.font, 'entities  : ' + this.entities.length, 20, 60, Radiant.Color.GREEN, 0);
+            application.scene.text.write(this.font, 'delta     : ' + this.stats.delta.get().avg + 'ms', 20, 80, Radiant.Color.GREEN, 0);
+            application.scene.text.write(this.font, 'main      : ' + this.stats.main.get().avg + 'ms', 20, 100, Radiant.Color.GREEN, 0);
+            application.scene.text.write(this.font, 'collider  : ' + this.stats.collider.get().avg + 'ms', 20, 120, Radiant.Color.GREEN, 0);
+
+            application.scene.text.draw();
+        }
+
+        sprites.debugDrawCount = 0;
+        scene.debugDrawCount = 0;
+    }
+};

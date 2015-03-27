@@ -1,0 +1,45 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var BatchRPC = require('outsourced/batch_rpc');
+var P_FLOAT = BatchRPC::P_FLOAT;
+var P_INT = BatchRPC::P_INT;
+var P_STR = BatchRPC::P_STR;
+
+module ColliderBase = proto (BatchRPC) {
+
+    procedures: [
+
+        // run on worker
+
+        [ 'createGrid', [ P_INT, P_INT, P_INT, P_INT, P_INT ] ],
+        [ 'updateGrid', [ P_INT, P_INT ] ],
+        [ 'addCollidable', [ P_INT, P_FLOAT, P_FLOAT, P_FLOAT, P_INT ] ],
+        [ 'updateCollidable', [ P_INT, P_FLOAT, P_FLOAT, P_FLOAT, P_INT ] ],
+        [ 'addCollisionFaction', [ P_INT, P_INT ] ],
+        [ 'addBounds', [ P_INT, P_FLOAT, P_FLOAT, P_FLOAT, P_FLOAT, P_FLOAT, P_FLOAT ] ],
+        [ 'removeCollidable', [ P_INT ] ],
+        [ 'test', [ ] ],
+
+        // run on view
+
+        [ 'collision', [ P_INT, P_INT ] ],
+        [ 'reportUsage', [ P_FLOAT ] ],
+        [ 'log', [ P_STR ] ],
+
+    ],
+};

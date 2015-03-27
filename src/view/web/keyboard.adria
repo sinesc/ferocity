@@ -1,0 +1,78 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Listenable = require('astd/listenable');
+
+/**
+ * listenable keyboard input
+ *
+ * @event keydown(keyCode, 'keydown') triggered once when a key is pressed
+ * @event keyup(keyCode, 'keyup') triggered once when a key is released
+ */
+module Keyboard = proto (Listenable) {
+
+    public keyState: null,
+    protected hostElement: null,
+
+    public constructor: func(hostElement) {
+
+        this.keyState = new Array(256);
+
+        for (var i = 0; i < this.keyState.length; ++i) {
+            this.keyState[i] = false;
+        }
+
+        this.hostElement = hostElement;
+        this.hostElement.addEventListener('keyup', this, false);
+        this.hostElement.addEventListener('keydown', this, false);
+    },
+
+    public destroy: func() {
+
+        this.hostElement.removeEventListener('keyup', this, false);
+        this.hostElement.removeEventListener('keydown', this, false);
+    },
+
+    public handleEvent: func(e) {
+
+        if (e.type === 'keydown') {
+            this.keyDown(e);
+        } else if (e.type === 'keyup') {
+            this.keyUp(e);
+        }
+    },
+
+    protected keyDown: func(e) {
+
+        var keyCode = parseInt(e.keyCode);
+
+        if (this.keyState[keyCode] !== true) {
+            this.keyState[keyCode] = true;
+            this.execute('keydown', keyCode, 'keydown');
+        }
+    },
+
+    protected keyUp: func(e) {
+
+        var keyCode = parseInt(e.keyCode);
+
+        if (this.keyState[keyCode] === true) {
+            this.keyState[keyCode] = false;
+            this.execute('keyup', keyCode, 'keyup');
+        }
+    },
+};

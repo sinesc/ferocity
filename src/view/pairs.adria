@@ -1,0 +1,318 @@
+/*
+ * tq2d JavaScript Sidescroller Engine
+ * Copyright (C) 2013 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * a single pair, used only in results
+ */
+export Pair = proto {
+    key: null,
+    value: null,
+    constructor: func(key, value) {
+        this.key = key;
+        this.value = value;
+    }
+};
+
+/**
+ * Pairs
+ *
+ * a sortable array of pairs
+ */
+module Pairs = func() {
+    this.keys = [ ];
+    this.values = [ ];
+};
+
+Pairs::keys = null;
+Pairs::values = null;
+
+/**
+ * push a key/value-pair
+ *
+ * @param key
+ * @param value
+ */
+Pairs::push = func(key, value) {
+    this.keys.push(key);
+    this.values.push(value);
+};
+
+/**
+ * pop a key/value-pair
+ *
+ * @return Pair
+ */
+Pairs::pop = func() {
+    return new Pair(this.keys.pop(), this.values.pop());
+};
+
+/**
+ * pop a key/value-pair into an existing Pair
+ *
+ * @param out Pair to receive popped item
+ */
+Pairs::popTo = func(out) {
+    out.key = this.keys.pop();
+    out.value = this.values.pop();
+};
+
+/**
+ * pop a key/value-pair and return only the key
+ *
+ * @return key
+ */
+Pairs::popKey = func() {
+    this.values.pop();
+    return this.keys.pop();
+};
+
+/**
+ * pop a key/value-pair and return only the value
+ *
+ * @return value
+ */
+Pairs::popValue = func() {
+    this.keys.pop();
+    return this.values.pop();
+};
+
+/**
+ * unshift a key/value-pair (insert at the beginning)
+ *
+ * @param key
+ * @param value
+ */
+Pairs::unshift = func(key, value) {
+    this.keys.unshift(key);
+    this.values.unshift(value);
+};
+
+/**
+ * shift a key/value-pair (remove from beginning and return)
+ *
+ * @return Pair
+ */
+Pairs::shift = func() {
+    return new Pair(this.keys.shift(), this.values.shift());
+};
+
+/**
+ * shift a key/value-pair and return only the key
+ *
+ * @return key
+ */
+Pairs::shiftKey = func() {
+    this.values.shift();
+    return this.keys.shift();
+};
+
+/**
+ * shift a key/value-pair and return only the value
+ *
+ * @return value
+ */
+Pairs::shiftValue = func() {
+    this.keys.shift();
+    return this.values.shift();
+};
+
+/**
+ * shift a key/value-pair into an existing Pair
+ *
+ * @param out Pair to receive shifted item
+ */
+Pairs::shiftTo = func(out) {
+    out.key = this.keys.shift();
+    out.value = this.values.shift();
+};
+
+/**
+ * get a key/value-pair
+ *
+ * @param index pair index
+ * @return Pair
+ */
+Pairs::get = func(index) {
+    return new Pair(this.keys[index], this.values[index]);
+};
+
+/**
+ * get a key/value-pair into an existing Pair
+ *
+ * @param index pair index
+ * @param out Pair to receive item
+ */
+Pairs::getTo = func(index, out) {
+    out.key = this.keys[index];
+    out.value = this.values[index];
+};
+
+/**
+ * set a key/value-pair
+ *
+ * @param index pair index
+ * @param key
+ * @param value
+ */
+Pairs::set = func(index, key, value) {
+    this.keys[index] = key;
+    this.values[index] = value;
+};
+
+/**
+ * removes a pair by shifting the last pair into its position and reducing length of pairs by 1
+ *
+ * @param index
+ */
+Pairs::remove = func(index) {
+    this.keys.remove(index);
+    this.values.remove(index);
+};
+
+/**
+ * returns stored number of pairs
+ *
+ * @return pairs
+ */
+Pairs::length = prop {
+    get: func() {
+        return this.keys.length;
+    },
+    set: func(value) {
+        this.keys.length = value;
+        this.values.length = value;
+    }
+};
+
+/**
+ * gets or sets the key of the first element
+ */
+Pairs::headKey = prop {
+    get: func() {
+        return this.keys[0];
+    },
+    set: func(value) {
+        this.keys[0] = value;
+    }
+};
+
+/**
+ * gets or sets the key of the last element
+ */
+Pairs::tailKey = prop {
+    get: func() {
+        var keys = this.keys;
+        return keys[keys.length -1];
+    },
+    set: func(value) {
+        var keys = this.keys;
+        keys[keys.length -1] = value;
+    }
+};
+
+/**
+ * gets or sets the value of the first element
+ */
+Pairs::headValue = prop {
+    get: func() {
+        return this.values[0];
+    },
+    set: func(value) {
+        this.values[0] = value;
+    }
+};
+
+/**
+ * gets or sets the value of the last element
+ */
+Pairs::tailValue = prop {
+    get: func() {
+        var values = this.values;
+        return values[values.length -1];
+    },
+    set: func(value) {
+        var values = this.values;
+        values[values.length -1] = value;
+    }
+};
+
+/**
+ * reverses element order
+ */
+Pairs::reverse = func() {
+    this.keys.reverse();
+    this.values.reverse();
+};
+
+/**
+ * sorts the elements by given criteria using given function
+ *
+ * @param criteria either a reference to keys or values
+ * @param other a reference to whichever or keys or values is not the criteria
+ * @param fn(a, b) an optional sorting function, @see Array::sort
+ */
+Pairs::_sort = func(criteria, other, fn) {
+
+    var map = [];
+    var mapId = 0;
+
+    // sort by criteria (key or value)
+
+    if (fn === undefined) {
+
+        criteria.sort(func(a, b) {
+            var relation = b - a;
+            map.push(relation);
+            return relation;
+        });
+
+    } else {
+
+        criteria.sort(func(a, b) {
+            var relation = fn(a, b);
+            map.push(relation);
+            return relation;
+        });
+    }
+
+    // then arrange the other in the same order
+
+    other.sort(func(a, b) {
+        return map[mapId++];
+    });
+};
+
+/**
+ * sorts the elements by their keys using given function
+ *
+ * @param fn(a, b) an optional sorting function, @see Array::sort
+ */
+Pairs::keySort = func(fn) {
+
+    this._sort(this.keys, this.values, fn);
+};
+
+/**
+ * sorts the elements by their values using given function
+ *
+ * @param fn(a, b) an optional sorting function, @see Array::sort
+ */
+Pairs::valueSort = func(fn) {
+
+    this._sort(this.values, this.keys, fn);
+};

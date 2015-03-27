@@ -1,0 +1,62 @@
+/*
+ * tq2d JavaScript Sidescroller Engine
+ * Copyright (C) 2013 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var utils = require('utils'); 
+
+/**
+ * Timeframe
+ *
+ * provides an accurate timeframe with variable progression of time
+ * when used as a mixin on Component, Timeframe will override Component's
+ * default time provider (engine). 
+ */
+module Timeframe = func() { };
+
+Timeframe::_timeframeLastEnd = 0.0;
+Timeframe::_timeframeStart = 0.0;
+Timeframe::_timeframeFactor = 1.0;
+
+/**
+ * starts progression of time
+ */
+Timeframe::timeframeStart = func() {
+    this._timeframeStart = utils.now();
+};
+
+/**
+ * time factor determines the rate at which future time will progress relative to
+ * realtime.
+ */
+Timeframe::timeframeFactor = prop {
+    get: func() { 
+        return this._timeframeFactor;
+    },
+    set: func(value) {
+        this._timeframeLastEnd = this.now;
+        this._timeframeStart = utils.now();
+        this._timeframeFactor = value;
+    }
+};
+
+/**
+ * get current context time
+ */
+Timeframe::now = prop {
+    get: func() {
+        return this._timeframeLastEnd + utils.now(this._timeframeStart) * this._timeframeFactor;
+    }
+};

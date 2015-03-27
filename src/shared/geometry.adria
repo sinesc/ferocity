@@ -1,0 +1,323 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var halfPI = 0.5 * Math.PI;
+var twoPI = 2 * Math.PI;
+var PI = Math.PI;
+
+export rad2deg = 180 / Math.PI;
+export deg2rad = Math.PI / 180;
+
+/**
+ * calculate distance between two points
+ *
+ * @param ax, ay coordinates of point a
+ * @param bx, by coordinates of point b
+ */
+export distance = func(ax, ay, bx, by) {
+
+    var dx = ax - bx;
+    var dy = ay - by;
+    return Math.sqrt(dx * dx + dy * dy);
+};
+
+/**
+ * diagonal length of given rectangle
+ *
+ * @param width
+ * @param height
+ */
+export diagonal = func(width, height) {
+    return Math.sqrt(width *  width + height * height);
+};
+
+/**
+ * private: checks intersection of ellipse A against ellipse B by testing <steps> points on
+ * a for containment in b. For reliable results, A needs to be checked against B as well as B against A
+
+ * @see http://en.wikipedia.org/wiki/Ellipse#Polar_form_relative_to_center
+ * @see ellipsesIntersect
+ */
+var ellipseAIntersectB = func(ax, ay, ah, av, aRad, bx, by, bh, bv, bRad, steps) {
+
+    var aBaseX, aBaseY, aPointX, aPointY, bToPointA, bBaseX, bBaseY, dist;
+
+    var sinArad = Math.sin(aRad);
+    var cosArad = Math.cos(aRad);
+    var increment = PI / steps * 2;
+
+    for (var testRad = 0; testRad < twoPI; testRad += increment) {
+
+        // base points (relative to origin)
+
+        aBaseX = Math.sin(testRad) * ah;
+        aBaseY = Math.cos(testRad) * av;
+
+        // rotate ellipse, add center: absolute position of testpoint on a
+
+        aPointX = aBaseX * cosArad - aBaseY * sinArad + ax;
+        aPointY = aBaseX * sinArad + aBaseY * cosArad + ay;
+
+        // get angle from b-center to a-point, then subtract b's orientation angle to get angle from intersection on b to b-center
+
+        bToPointA = Math.atan2(aPointY - by, aPointX - bx) - bRad;
+
+        // if distance from b to a-point is smaller than distance from b to b-point, then ellipses intersect
+
+        bBaseX = Math.cos(bToPointA) * bv;
+        bBaseY = Math.sin(bToPointA) * bh;
+
+        dist = (bh * bv) / Math.sqrt(bBaseX * bBaseX + bBaseY * bBaseY);
+
+        if (distance(bx, by, aPointX, aPointY) < dist) {
+            //debug('geometry').ellipse(ax, ay, ah, av, aRad * rad2deg, steps, 'white');
+            //debug('geometry').ellipse(bx, by, bh, bv, bRad * rad2deg, steps, 'white');
+            return true;
+        }
+    }
+
+    return false;
+};
+
+/**
+ * returns true if two basic, unrotated ellipses intersect
+ *
+ * @param ax, ay coordinates of ellipse a
+ * @param ah, av horizontal/vertical radius or ellipse a
+ * @param bx, by coordinates of ellipse b
+ * @param bh, bv horizontal/vertical radius or ellipse b
+ */
+var basicEllipsesIntersect = func(ax, ay, ah, av, bx, by, bh, bv) {
+
+    // deltas
+
+    var dy = by - ay;
+    var dx = bx - ax;
+
+    // point of ellipse a at angle matching angle of line between a and b against x-axis
+
+    var arad = halfPI - Math.atan2(dy * ah / av, dx);
+    var iax = ax + Math.sin(arad) * ah;
+    var iay = ay + Math.cos(arad) * av;
+
+    // point of ellipse b at angle matching angle of line between b and a against x-axis
+
+    var brad = -halfPI - Math.atan2(dy * bh / bv, dx);
+    var ibx = bx + Math.sin(brad) * bh;
+    var iby = by + Math.cos(brad) * bv;
+
+    //debug('geometry').line(iax, iay, ibx, iby);
+
+    // calculate outer distance by subtracting the radiuses of a and b at lineintersection from center distance
+
+    return (distance(ax, ay, bx, by) - (distance(ax, ay, iax, iay) + distance(bx, by, ibx, iby))) <= 0;
+};
+
+/**
+ * checks whether two circles intersect
+ *
+ * @param ax, ay, ar coordinates and radius of circle a
+ * @param bx, by, br coordinates and radius of circle b
+ */
+var circlesIntersect = func(ax, ay, ar, bx, by, br) {
+
+    var distAB = distance(ax, ay, bx, by);
+    return distAB < ar + br;
+};
+
+/**
+ * checks whether two ellipses intersect
+ *
+ * @param ax, ay coordinates of ellipse a
+ * @param ah, av horizontal/vertical radius or ellipse a
+ * @param aa rotation angle against x-axis (degrees)
+ * @param bx, by coordinates of ellipse b
+ * @param bh, bv horizontal/vertical radius or ellipse b
+ * @param ba rotation angle against x-axis (degrees)
+ * @param steps optional number of subdivisions of each ellipse to test, defaults to 8
+ */
+export ellipsesIntersect = func(ax, ay, ah, av, aa, bx, by, bh, bv, ba, steps) {
+
+    // basic ellipse, just do the test
+
+    if (aa === 0 && ba === 0) {
+        return basicEllipsesIntersect(ax, ay, ah, av, bx, by, bh, bv);
+    }
+
+    // check if outer circles do not intersect -> ellipse cannot intersect either
+
+    var ar = Math.max(ah, av);
+    var br = Math.max(bh, bv);
+
+    if (circlesIntersect(ax, ay, ar, bx, by, br) === false) {
+        return false;
+    }
+
+    // check if inner circles intersect -> ellipse must intersect too
+
+    ar = Math.min(ah, av);
+    br = Math.min(bh, bv);
+
+    if (circlesIntersect(ax, ay, ar, bx, by, br)) {
+        return true;
+    }
+
+    // neither case matches, we have to test the ellipse (slow!)
+
+    steps = (steps === undefined ? 8 : steps);
+    aa *= deg2rad;
+    ba *= deg2rad;
+
+    return ellipseAIntersectB(ax, ay, ah, av, aa, bx, by, bh, bv, ba, steps) || ellipseAIntersectB(bx, by, bh, bv, ba, ax, ay, ah, av, aa, steps);
+};
+
+/**
+ * angle between line ab and x-axis in degrees
+ *
+ * @param ax
+ * @param ay
+ * @param bx
+ * @param by
+ */
+export angleBetween = func(ax, ay, bx, by) {
+
+    return Math.atan2(ay - by, ax - bx) * rad2deg;
+};
+
+/**
+ * quadrant of vector (extended for angles -90, 0, 90, 180)
+ * use quadrant() % 4 to get standard geometric quadrant
+ *
+ * @param finite vX
+ * @param finite vY
+ */
+export quadrant = func(finite vX, finite vY) {
+
+    var angle = Math.atan2(-vY, -vX) * rad2deg;
+
+    /* quadrants and angles
+
+                 90°
+
+                  5
+                2 | 1
+        0°   6 ---+--- 8  +180°
+                3 | 4
+                  7
+
+                 -90°
+    */
+
+    if (angle === 0.0) {
+
+        return 6;
+
+    } else if (angle < 0) {
+
+        if (angle === -90.0) {
+            return 7;
+        } else if (angle > -90) {
+            return 3;
+        } else {
+            return 4;
+        }
+
+    } else {
+
+        if (angle === 90.0) {
+            return 5;
+        } else if (angle < 90) {
+            return 2;
+        } else if (angle < 180) {
+            return 1;
+        } else {
+            return 8;
+        }
+    }
+};
+
+/**
+ * returns true if given vector is outbound (moving away from screen center and outside of box
+ * delimited by (0,0/xMax,yMax) + grace
+ *
+ * @param finite vX
+ * @param finite vY
+ * @param finite x
+ * @param finite y
+ * @param finite xMax
+ * @param finite yMax
+ * @param finite grace 
+ */
+export vectorOutbound = func(finite vX, finite vY, finite x, finite y, finite xMax, finite yMax, finite grace) {
+
+    var outbound;
+
+    // unmoving outside of screen = outbound
+
+    if (vX === 0 && vY === 0) {
+        return x < -grace || y < -grace || x > xMax + grace || y > yMax + grace;
+    }
+
+    // fall-through using "outbound |= .." from i to i+4 would be possible, but turned out to be less readable
+    // @see geometry.quadrant for picture
+
+    var q = quadrant(vX, vY);
+
+    switch (q) {
+
+        // most frequent qudrants
+
+        case 6:
+            outbound = x < -grace;
+            break;
+
+        case 2:
+            outbound = x < -grace || y < -grace;
+            break;
+
+        case 3:
+            outbound = x < -grace || y > yMax + grace;
+            break;
+
+        case 8:
+            outbound = x > xMax + grace;
+            break;
+
+        // least frequent quadrants
+
+        case 5:
+            outbound = y < -grace;
+            break;
+
+        case 7:
+            outbound = y > yMax + grace;
+            break;
+
+        case 1:
+            outbound = x > xMax || y < -grace;
+            break;
+
+        case 4:
+            outbound = x > xMax + grace || y > yMax + grace;
+            break;
+
+        default:
+            assert(false, 'invalid quadrant');
+    }
+
+    return outbound;
+};

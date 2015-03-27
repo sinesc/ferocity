@@ -1,0 +1,108 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Pairs = require('pairs');
+
+/**
+ * Progression
+ *
+ * a queue with named indices, used as a progression of events (functions to call, data to return) to come
+ */
+module Progression = proto {
+
+    protected data: null,
+    protected sorted: false,
+
+    public constructor: func() {
+
+        this.data = new Pairs();
+        this.sorted = false;
+    },
+
+    /**
+     * destroy Progression
+     */
+    public destroy: func() {
+
+        assert(this instanceof Progression);
+        this.data.length = 0;
+        this.data = null;
+    },
+
+    /**
+     * remove all events from the progression
+     */
+    public clear: func() {
+
+        this.data.length = 0;
+    },
+
+    /**
+     * returns the point of the first event on the Progression
+     *
+     * @param finite min optional, if present only returns point if point <= min
+     * @return finite point or -1
+     */
+    public peek: func(finite? min = null) {
+
+        this.checkSorted();
+
+        // peek last(smallest) point on index
+
+        var point = this.data.tailKey;
+
+        if (point === undefined || (min !== null && point > min)) {
+            return -1;
+        }
+
+        return point;
+    },
+
+    /**
+     * returns and removes next element from Progression
+     *
+     * @return data
+     */
+    public shift: func() {
+
+        this.checkSorted();
+        return this.data.popValue();
+    },
+
+    /**
+     * inserts an event into the Progression at a given point. there can be multiple events
+     * at the same point.
+     */
+    public insert: func(finite point, event) {
+
+        this.data.push(point, event);
+        this.sorted = false;
+    },
+
+    /**
+     * check if Progression is sorted, if not do so
+     */
+    protected checkSorted: func() {
+
+        if (this.sorted !== true) {
+            this.data.keySort();
+            this.sorted = true;
+        }
+    },
+};
+
+

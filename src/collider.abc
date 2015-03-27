@@ -1,0 +1,12 @@
+{
+    "depend": "config.inc",
+    "files": [
+        "collider/main.adria"
+    ],
+    "outFile": "../www/collider.js",
+    "basePath": "./",
+    "paths": [ "./collider/", "./shared/", "../../outsourcedlib/", "../../astdlib/" ],
+    "extension": ".adria",
+    "platform": "web",
+    "headerFile": "../license-header"
+}

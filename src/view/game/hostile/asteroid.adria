@@ -1,0 +1,122 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Hostile = require('game/hostile');
+var Shard = require('game/hostile/shard');
+
+module Asteroid = proto (Hostile) {
+
+    public scale: 1,
+    public Shard: Shard,
+
+    public baseSprites: [ 'sprite/asteroid/type1_64x64x60.png', 'sprite/asteroid/type2_64x64x60.png', 'sprite/asteroid/type3_64x64x60.png' ],
+
+    public DustRenderer: null,
+    public dustRenderer: null,
+    public dustSprites: '/res/effect/dust_darkbrown_256x256x1.png',
+
+    public smallExplosions: null,
+    public largeExplosions: null,
+
+    protected faction: 'hostile',
+    protected collisionFactions: [ 'friendly', 'chaos' ],
+
+    public constructor: func(finite startX, finite startY, finite scale = this.scale) {
+
+        Hostile->constructor(startX, startY);
+
+        this.scale = scale;
+
+        // apply changes to renderes
+
+        var scaleUp = scale + 0.15;
+
+        this.deathSoundSize = scale;
+        this.deathSoundPriority = scale < 0.5 ? 0 : (scale < 0.95 ? 1 : 2);
+        this.deathSounds = scale < 0.85 ? this.smallExplosions : this.largeExplosions;
+
+        this.deathRenderer.glowScale = 5 * scaleUp * scaleUp * scaleUp;
+        this.deathRenderer.glowDecay = 15 + 15 * scale;
+        this.deathRenderer.scaleX = scale;
+        this.deathRenderer.scaleY = scale;
+        this.deathRenderer.expMaxRadius = 30 * scale;
+
+        if (this.DustRenderer !== null && this.dustSprites !== null && scale > 0.5 && application.options.gfxDust) {
+            this.deathRenderer = new this.DeathRenderer(this.dustSprites.random());
+            this.dustRenderer.alpha = 0.3;
+            this.dustRenderer.layer = Math.randInt(0,1) * 2;
+        }
+
+        if (scale < 0.75) {
+            this.deathRenderer.expMinEffects = 1;
+            this.deathRenderer.expMaxEffects = 2;
+        }
+
+        this.baseRenderer.offsetT = Math.random() * 2;
+        this.baseRenderer.scaleX = scale;
+        this.baseRenderer.scaleY = scale;
+
+        // base properties
+
+        this.addBounds(22 * scale, 22 * scale, 0, 0, 0, 1);
+        this.rotateBy = Math.random() * 10 - 5;
+        this.hitpoints *= (scale * scale * scale * scale * scale * scale);
+    },
+
+    public draw: func() {
+
+        if (Hostile->draw() !== true) {
+            return false;
+        }
+
+        if (this.dustRenderer !== null) {
+            this.dustRenderer.draw(this.x, this.y);
+        }
+
+        return true;
+    },
+
+    public death: func() {
+
+        Hostile->death();
+
+        if (this.dustRenderer !== null) {
+            this.dustRenderer.fade(1);
+        }
+
+        if (this.Shard !== null && this.baseRenderer.scaleX > 0.65) {
+
+            var num = Math.ceil(this.baseRenderer.scaleX * 10);
+            var x = this.x - application.level.x;
+            var y = this.y - application.level.y;
+
+            for (var i = 0; i < num; i++) {
+                application.level.addEntity(this.Shard, [ x, y, this.baseRenderer.scaleX / 2 ]);
+            }
+        }
+    },
+
+    public think: func(finite delta) {
+
+        if (Hostile->think(delta) !== true) {
+            return false;
+        }
+
+        this.baseRenderer.angle += this.rotateBy * delta;
+        return true;
+    },
+};
