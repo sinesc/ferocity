@@ -15,14 +15,10 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+var deg2rad = require('geometry').deg2rad;
 var Glow = require('./glow');
 var ip = require('../interpolation');
-var Color = require('radiant/radiant').Color;
-
-var maxSize     = 0;
-var maxX        = 0;
-var maxY        = 0;
-var maxSprite   = -1;
+var Color = require('radiant/color');
 
 /**
  * Renders the sprite multiple times moving outward from a common center. The effect will only play
@@ -33,7 +29,7 @@ var maxSprite   = -1;
 module Explode = proto (Glow) {
 
     public spriteName: 'sprite/explosion/default_128x128x40.jpg',
-    public alpha: 0.65,
+    public alpha: 0.75,
 
     public glowAlpha: 0.6,
     public glowColorR: 1.0,
@@ -86,41 +82,6 @@ module Explode = proto (Glow) {
     protected expD: null,
 
     /**
-     * attempts to set new maximum for all explosion effects (if provided size greater currently known maximum)
-     *
-     * @param size
-     * @param x
-     * @param y
-     * @param sprite
-     */
-    public updateGlobalMaximum: func(size, x, y, sprite) {
-
-        if (size > maxSize + 0.5) {
-
-            maxSize     = size;
-            maxX        = x;
-            maxY        = y;
-            maxSprite   = sprite;
-        }
-    },
-
-    /**
-     * returns object containing global data and resets global maximum
-     */
-    public postProcess: func() {
-
-        var alpha = Math.min(0.2, maxSize / 20);
-        var scale = Math.min(40, maxSize * maxSize * maxSize) / 2;
-
-        if (maxSprite !== -1) {
-            //application.vctx[2].drawSprite(maxSprite, 0, maxX, maxY, this.CMP_BLEND, alpha, 0, scale);
-        }
-
-        maxSize /= 2; //-= Math.min(this.backgroundGlow, delta);
-        maxX -= application.frameDelta;
-    },
-
-    /**
      * triggers the explosion effect
      *
      * @return time the effect will take
@@ -135,9 +96,9 @@ module Explode = proto (Glow) {
 
         // always create one centered explosion
 
-        this.expR.push(0);
-        this.expD.push(0);
-        this.expA.push(0);
+        this.expR.push(0.0);
+        this.expD.push(0.0);
+        this.expA.push(0.0);
 
         // add some explosions around it
 
@@ -151,7 +112,7 @@ module Explode = proto (Glow) {
 
         // return total amount of time required to play through the effect
 
-        return this.continuous ? 99999999 : (numExplosions * this.expInterval) + (this.sprite.numFrames / this.FPS);
+        return this.continuous ? 99999999.0 : (numExplosions * this.expInterval) + (this.sprite.numFrames / this.FPS);
     },
 
     /**
@@ -168,12 +129,13 @@ module Explode = proto (Glow) {
 
         var offset, frameId;
         var rendered = 0;
-        var maxGlow = 0;
+        var maxGlow = 0.0;
         var frameTime = application.frameTime;
+        var blendMode = application.radiant.BLENDMODE[this.composite];
 
         // render explosion sprites
 
-        for (var i = 0; i < this.expR.length; i++) {
+        for (var i = 0, len = this.expR.length; i < len; ++i) {
 
             // calculate frame
 
@@ -198,13 +160,13 @@ module Explode = proto (Glow) {
 
                 application.scene.addSprite(
                     (i+1) % 2 * 2,
-                    this.composite,
+                    blendMode,
                     this.sprite,
                     frameId,
-                    x + this.offsetX,
-                    y + this.offsetY,
+                    (x + this.offsetX) | 0,
+                    (y + this.offsetY) | 0,
                     Color.rgba1(this.colorR, this.colorG, this.colorB, (i === 0 ? Math.sqrt(this.alpha) : this.alpha)),
-                    this.expA[i],
+                    this.expA[i] * deg2rad,
                     this.scaleX,
                     this.scaleY
                 );
@@ -215,28 +177,24 @@ module Explode = proto (Glow) {
 
         // render glow at the maximum brightness established for any of the sprites rendered
 
-        if (rendered > 0 && this.glow !== null) {
+        if (rendered > 0 && this.glowSprite !== null && this.glowAlpha > 0.0) {
 
-            var color = KToRGB(1500 + maxGlow * maxGlow * maxGlow * maxGlow * 13500);
+            var color = Color.fromTemperature(15000 - (maxGlow * maxGlow * maxGlow * maxGlow * 11500), this.glowAlpha * maxGlow * 255);
 
             application.scene.addSprite(
                 this.glowLayer,
-                this.composite,
+                blendMode,
                 this.glowSprite,
                 0,
-                x + this.offsetX,
-                y + this.offsetY,
-                Color.rgba1(color.r, color.g, color.b, this.glowAlpha * maxGlow),
+                (x + this.offsetX) | 0,
+                (y + this.offsetY) | 0,
+                color.value,
                 0,
                 this.glowScale * maxGlow
                 //this.glowScale * maxGlow
                 // this.origin !todo
             );
         }
-
-        // remember brightest explosion for postprocessing
-
-        this.updateGlobalMaximum(this.glowScale * maxGlow, x, y, this.glowSprite);
 
         // if none were rendered, the animation is done
 
@@ -249,64 +207,3 @@ module Explode = proto (Glow) {
         }
     },
 };
-
-// http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
-
-func KToRGB(Temperature) {
-
-    Temperature = Temperature / 100;
-
-    var Red, Green, Blue;
-
-    if (Temperature <= 66){
-        Red = 255;
-    } else {
-        Red = Temperature - 60;
-        Red = 329.698727466 * Math.pow(Red, -0.1332047592);
-        if (Red < 0){
-            Red = 0;
-        }
-        if (Red > 255){
-            Red = 255;
-        }
-    }
-
-    if (Temperature <= 66){
-        Green = Temperature;
-        Green = 99.4708025861 * Math.log(Green) - 161.1195681661;
-        if (Green < 0 ) {
-            Green = 0;
-        }
-        if (Green > 255) {
-            Green = 255;
-        }
-    } else {
-        Green = Temperature - 60;
-        Green = 288.1221695283 * Math.pow(Green, -0.0755148492);
-        if (Green < 0 ) {
-            Green = 0;
-        }
-        if (Green > 255) {
-            Green = 255;
-        }
-    }
-
-    if (Temperature >= 66){
-        Blue = 255;
-    } else {
-        if (Temperature <= 19){
-            Blue = 0;
-        } else {
-            Blue = Temperature - 10;
-            Blue = 138.5177312231 * Math.log(Blue) - 305.0447927307;
-            if (Blue < 0){
-                Blue = 0;
-            }
-            if (Blue > 255){
-                Blue = 255;
-            }
-        }
-    }
-
-    return { r: Red / 255, g: Green / 255, b: Blue / 255 };
-}

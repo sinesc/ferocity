@@ -15,27 +15,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+var BufferExchange = require('outsourced/buffer_exchange');
 var ColliderBase = require('collider_base');
 var Collidable = require('collidable');
 var Grid = require('grid');
+var utils = require('utils');
+var ArrayMap = require('array_map');
+//import Map;
 
 /**
  * WORKER PROCESS endpoint of Collider
  */
 module Collider = proto (ColliderBase) {
 
-    protected lookup: null,
     protected collidables: null,
     protected grid: null,
-
-    /**
-     * instance constructor
-     */
-    /*public constructor: func() {
-
-        parent->constructor();
-
-    },*/
 
     /**
      * setup collision grid
@@ -43,8 +37,7 @@ module Collider = proto (ColliderBase) {
     public createGrid: func(finite width, finite height, finite factions, finite cols, finite rows) {
 
         this.grid = new Grid(width, height, factions, cols, rows);
-        this.lookup = { };
-        this.collidables = [ ];
+        this.collidables = new ArrayMap();
     },
 
     /**
@@ -66,9 +59,7 @@ module Collider = proto (ColliderBase) {
     public addCollidable: func(finite collidableId, finite x, finite y, finite angle, finite factionId) {
 
         var collidable = new Collidable(collidableId, x, y, angle, factionId);
-
-        this.lookup[collidableId] = collidable;
-        this.collidables.insert(collidable);
+        this.collidables.set(collidableId, collidable);
     },
 
     /**
@@ -81,7 +72,12 @@ module Collider = proto (ColliderBase) {
      */
     public updateCollidable: func(finite collidableId, finite x, finite y, finite angle, finite suspended) {
 
-        var collidable = this.lookup[collidableId];
+        var collidable = this.collidables.get(collidableId);
+
+        if (collidable === undefined) {
+            return;
+        }
+
         collidable.x = x;
         collidable.y = y;
         collidable.angle = angle;
@@ -95,7 +91,7 @@ module Collider = proto (ColliderBase) {
      * @param finite factionId
      */
     public addCollisionFaction: func(finite collidableId, finite factionId) {
-        this.lookup[collidableId].addCollisionFaction(factionId);
+        this.collidables.get(collidableId).addCollisionFaction(factionId);
     },
 
     /**
@@ -110,7 +106,7 @@ module Collider = proto (ColliderBase) {
      * @param finite eOcclusion occlusion factor for background objects
      */
     public addBounds: func(finite collidableId, finite eH, finite eV, finite eAngle, finite eOffsetDistance, finite eOffsetAngle, finite eOcclusion) {
-        this.lookup[collidableId].addBounds(eH, eV, eAngle, eOffsetDistance, eOffsetAngle, eOcclusion);
+        this.collidables.get(collidableId).addBounds(eH, eV, eAngle, eOffsetDistance, eOffsetAngle, eOcclusion);
     },
 
     /**
@@ -119,13 +115,23 @@ module Collider = proto (ColliderBase) {
      * @param finite collidableId
      */
     public removeCollidable: func(finite collidableId) {
+        this.collidables.delete(collidableId);
+    },
 
-        var collidable = this.lookup[collidableId];
-        var i = this.collidables.length;
-        while (i--) {
-            if (this.collidables[i] === collidable) {
-                this.collidables.remove(i);
-                return;
+    private populate: func() {
+
+        var grid = this.grid;
+        var collidables = this.collidables.array; //.values();
+
+        // reset grid with current collidables and test
+
+        //grid.clear();
+
+        //for (var collidable of collidables) {
+        for (var id = 0, len = collidables.length; id < len; ++id) {
+            var collidable = collidables[id];
+            if (collidable.suspended === false) {
+                grid.add(collidable);
             }
         }
     },
@@ -135,21 +141,11 @@ module Collider = proto (ColliderBase) {
      */
     public test: func() {
 
-        var grid = this.grid;
-        var collidables = this.collidables;
-        var id = collidables.length;
+        this.grid.clear();
 
-        // reset grid with current collidables and test
+        this.populate();
 
-        grid.clear();
-
-        while (id--) {
-            if (collidables[id].suspended === false) {
-                grid.add(collidables[id]);
-            }
-        }
-
-        var collisions = grid.test(this);
+        var collisions = this.grid.test(this);
 
         // invoke collisions method on view
 
@@ -162,6 +158,36 @@ module Collider = proto (ColliderBase) {
             }
         }
     },
+
+    /**
+     * start listening to main worker
+     * !todo refactor ondata to methdod, usage+bex to property
+     */
+    public start: func() {
+
+        var bex = new BufferExchange(window);
+        var usage = 0.0;
+
+        bex.on('data', func(readBuffer, sourceId) {
+
+//console.log('collider working');
+            var start = utils.now();
+            var writeBuffer = bex.getWriteBuffer();
+
+            application.writeBuffer(writeBuffer.data);      // sets send buffer (!todo need to work on naming)
+
+            application.reportUsage(usage);                 // include usage from previous frame in response
+            application.reportTests(application.grid !== null ? application.grid.tests : 0);
+
+            application.readBuffer(readBuffer.data);        // executes the received buffer
+
+            readBuffer.release();                           // release received buffer: becomes reusable again
+            writeBuffer.release();                          // release send-buffer: transfer to recipient
+//console.log('collider done');
+            usage = utils.now() - start;
+        });
+    },
+
 };
 
 Collider::setupEndPoint('worker');

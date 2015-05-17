@@ -39,6 +39,7 @@ module ColliderBase = proto (BatchRPC) {
 
         [ 'collision', [ P_INT, P_INT ] ],
         [ 'reportUsage', [ P_FLOAT ] ],
+        [ 'reportTests', [ P_INT ] ],
         [ 'log', [ P_STR ] ],
 
     ],

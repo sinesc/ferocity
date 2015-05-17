@@ -16,16 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 require('astd/prototype').extend();
-require('series');
 
-// initialize global debug
-
-global debug = require('./debug');
-window.debug = debug;
+global debug = require('debug');
 
 // initialize global engine-view
 
-var GameEngine = require('./game/engine');
+var GameEngine = require('game/engine');
 
 application(GameEngine, document.getElementById('ferocityHost'), '/collider.js');
 application.start();

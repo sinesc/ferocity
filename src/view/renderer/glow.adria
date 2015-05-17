@@ -15,13 +15,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+var deg2rad = require('geometry').deg2rad;
 var Renderer = require('../renderer');
-var Color = require('radiant/radiant').Color;
+var Color = require('radiant/color');
 
 module Glow = proto (Renderer) {
 
     public layer: 0,
-    public composite: Glow::CMP_LIGHTEN,
+    public composite: 'LIGHTEN',
 
     public glowColorR: 1.0,
     public glowColorG: 1.0,
@@ -47,7 +48,7 @@ module Glow = proto (Renderer) {
         Renderer->constructor(spriteName);
 
         this.glowSpriteName = glowSpriteName;
-        this.glowSprite = application.loadSprite(this.glowSpriteName);
+        this.glowSprite = application.sprites.load(this.glowSpriteName);
         assert(this.glowSprite !== null);
     },
 
@@ -66,34 +67,40 @@ module Glow = proto (Renderer) {
         }
 
         var factor = this.fadeFactor;
+        var blendMode = application.radiant.BLENDMODE[this.composite];
 
-        application.scene.addSprite(
-            this.glowLayer,
-            this.composite,
-            this.glowSprite,
-            0,
-            x + this.offsetX,
-            y + this.offsetY,
-            Color.rgba1(this.glowColorR, this.glowColorG, this.glowColorB, this.glowAlpha * factor * factor * factor),
-            isNaN(this.glowAngle) ? this.angle : this.glowAngle,
-            this.glowScale,
-            this.glowScale
-            // this.origin !todo
-        );
+        if (this.glowAlpha > 0) {
 
-        application.scene.addSprite(
-            this.layer,
-            this.composite,
-            this.sprite,
-            this.getFrameId(),
-            x + this.offsetX,
-            y + this.offsetY,
-            Color.rgba1(this.colorR, this.colorG, this.colorB, this.alpha * factor),
-            this.angle,
-            this.scaleX,
-            this.scaleY
-            // this.origin !todo
-        );
+            application.scene.addSprite(
+                this.glowLayer,
+                blendMode,
+                this.glowSprite,
+                0,
+                (x + this.offsetX) | 0,
+                (y + this.offsetY) | 0,
+                Color.rgba1(this.glowColorR, this.glowColorG, this.glowColorB, this.glowAlpha * factor * factor * factor),
+                isNaN(this.glowAngle) ? this.angle * deg2rad : this.glowAngle * deg2rad,
+                this.glowScale,
+                this.glowScale
+                // this.origin !todo
+            );
+        }
+
+        if (this.alpha > 0) {
+
+            application.scene.addSprite(
+                this.layer,
+                blendMode,
+                this.sprite,
+                this.getFrameId(),
+                (x + this.offsetX) | 0,
+                (y + this.offsetY) | 0,
+                Color.rgba1(this.colorR, this.colorG, this.colorB, this.alpha * factor),
+                this.angle * deg2rad,
+                this.scaleX,
+                this.scaleY
+                // this.origin !todo
+            );
+        }
     },
 };
-

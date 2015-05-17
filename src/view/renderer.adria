@@ -16,18 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 var deg2rad = require('geometry').deg2rad;
-var Radiant = require('radiant/radiant');
-//var Sprite = Radiant.Sprite;
-var Color = Radiant.Color;
+var Color = require('radiant/color');
 
 /**
  * Sprite renderer object used to describe how a sprite is being rendered
  */
 module Renderer = proto {
-
-    public CMP_COPY     : Radiant::BLENDMODE.COPY,
-    public CMP_LIGHTEN  : Radiant::BLENDMODE.LIGHTEN,
-    public CMP_OVERLAY  : Radiant::BLENDMODE.OVERLAY,
 
     public spriteName   : null,
     public sprite       : null,
@@ -36,7 +30,7 @@ module Renderer = proto {
     public FPS          : 25,
 
     public layer        : 1,
-    public composite    : Radiant::BLENDMODE.COPY,
+    public composite    : 'COPY',
 
     public colorR       : 1.0,
     public colorG       : 1.0,
@@ -76,7 +70,7 @@ module Renderer = proto {
     public constructor: func(string spriteName = this.spriteName) {
 
         this.spriteName = spriteName;
-        this.sprite = application.loadSprite(this.spriteName);
+        this.sprite = application.sprites.load(this.spriteName);
         assert(this.sprite !== null);
     },
 
@@ -122,15 +116,18 @@ module Renderer = proto {
      */
     public getFrameId: func() {
 
-        if (this.forceFrame !== -1) {
+        if (this.forceFrame === -1) {
+
+            var numFrames = this.sprite.numFrames;
+            var frameId = Math.round((application.frameTime + this.offsetT) * this.FPS) * this.frameStep;
+            frameId = (frameId % numFrames) | 0;
+            frameId += this.frameOffset; //!todo why didn't I just add id before % op?
+            return (frameId % numFrames) | 0;
+
+        } else {
+
             return Math.round(this.forceFrame);
         }
-
-        var numFrames = this.sprite.numFrames;
-        var frameId = Math.round((application.frameTime + this.offsetT) * this.FPS) * this.frameStep;
-        frameId = frameId % numFrames;
-        frameId += this.frameOffset; //!todo why didn't I just add id before % op?
-        return frameId % numFrames;
     },
 
     /**
@@ -151,23 +148,16 @@ module Renderer = proto {
 
         application.scene.addSprite(
             this.layer,
-            this.composite,
+            application.radiant.BLENDMODE[this.composite],
             this.sprite,
             this.getFrameId(),
-            x + this.offsetX,
-            y + this.offsetY,
+            (x + this.offsetX) | 0,
+            (y + this.offsetY) | 0,
             Color.rgba1(this.colorR, this.colorG, this.colorB, this.alpha * factor * factor),
-            this.angle,
+            this.angle * deg2rad,
             this.scaleX,
             this.scaleY
             // this.origin !todo
         );
     },
 };
-
-/*Renderer::ORG_CENTER := Context2d::ORG_CENTER;
-Renderer::ORG_LEFT_CENTER := Context2d::ORG_LEFT_CENTER;
-Renderer::ORG_RIGHT_CENTER := Context2d::ORG_RIGHT_CENTER;
-*/
-
-

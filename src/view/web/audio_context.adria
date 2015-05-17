@@ -19,17 +19,21 @@
 /**
  * a dummy audio context doing nothing
  */
-module DummyAudioContext = func() {
+module AudioContext = (func() {
 
-    this.destination = null;
-    this.activeSourceCount = -1;
-    this.createGain = func() { return { connect: func() { } }; };
-    this.createPanner = this.createGain;
-    this.createBufferSource = this.createGain;
-    this.createDynamicsCompressor = this.createGain;
-    this.decodeAudioData = func(a, b) {
-        setTimeout(func() {
-            b(a);
-        }, 0);
-    };
-};
+    return window.AudioContext || window.webkitAudioContext || (func() {
+
+        this.destination = null;
+        this.activeSourceCount = -1;
+        this.createGain = func() { return { connect: func() { } }; };
+        this.createPanner = this.createGain;
+        this.createBufferSource = this.createGain;
+        this.createDynamicsCompressor = this.createGain;
+        this.decodeAudioData = func(a, b) {
+            setTimeout(func() {
+                b(a);
+            }, 0);
+        };
+    });
+
+})();

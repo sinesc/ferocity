@@ -1,0 +1,217 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+var options = { };
+var all = false;
+var dummy = { };
+var noop = func() { return false; };
+var selected = '';
+
+/**
+ * debug singleton, call with featurename to test if debugging for that feature is enabled
+ *
+ * usage i.e. debug('mytest').text(10, 10, 'mytest is debugging');
+ *
+ * @param feature
+ * @return debug object if debug enabled for given feature, otherwise dummy noop object
+ */
+module debug = func(feature) {
+    selected = feature;
+    return (test(feature) ? debug : dummy);
+};
+
+/**
+ * set status for all, one or multiple features
+ *
+ * @access private
+ * @param feature if not specified, all features will be updated, if string or array, given feature(s) will be updated
+ * @param status new feature status, true or false
+ */
+var toggle = func(features, status) {
+
+    if (features.length === 0) {
+        all = status;
+        for (var name in options) {
+            options[name] = -1;
+        }
+    } else {
+        for (var id in features) {
+            options[features[id]] = status;
+        }
+    }
+};
+
+/**
+ * enable all, one or multiple features
+ *
+ * @param variable number of feature strings, or if none specified, all features will be enabled
+ */
+export enable = func(...features) {
+    toggle(features, 1);
+};
+
+/**
+ * disable all, one or multiple features
+ *
+ * @param variable number of feature strings, or if none specified, all features will be disabled
+ */
+export disable = func(...features) {
+    toggle(features, 0);
+};
+
+/**
+ * test if given feature is enabled
+ *
+ * @param feature
+ * @return true if enabled
+ */
+export test = func(feature) {
+
+    if (options[feature] === undefined) {
+        options[feature] = -1;
+    }
+
+    return options[feature] === -1 ? all : (options[feature] === 1);
+};
+
+/**
+ * returns debug options seen so far
+ *
+ * @return array
+ */
+export seen = func() {
+    return Object.keys(options);
+};
+
+/**
+ * log message to console
+ */
+dummy.log = noop;
+export log = func(...args) {
+    args.unshift(selected + ':');
+    console.log.apply(console, args);
+};
+
+
+//!todo below is copy&paste
+
+
+/**
+ * text output
+ */
+dummy.text = noop;
+export text = func(x, y, lines) {
+
+    var ctx = application.highCtx;
+
+    ctx.save();
+    ctx.font = 'bold 14px "Courier New"';
+    ctx.fillStyle = '#000';
+    ctx.composite = ctx.CMP_COPY;
+    ctx.textAlign = ctx.TA_LEFT;
+    ctx.alpha = 1;
+
+    if (lines instanceof Array !== true) {
+        lines = [ lines ];
+    }
+
+    for (var id in lines) {
+        ctx.fillText(''+lines[id], x - 1, y - 1+ id * 14);
+    }
+
+    ctx.fillStyle = '#fff';
+
+    for (var id in lines) {
+        ctx.fillText(''+lines[id], x, y + id * 14);
+    }
+
+    ctx.restore();
+};
+
+/**
+ * draws an ellipse in entity parameter form
+ */
+dummy.ellipse = noop;
+export ellipse = func(x, y, h, v, a, steps, color) {
+
+    var ctx = application.highCtx;
+
+    color = (color === undefined ? 'rgb(200, 0, 0)' : color);
+    steps = (steps === undefined ? 8 : steps);
+    a = (a === undefined ? 0 : a * (Math.PI / 180));
+
+    ctx.globalAlpha = 0.8;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+
+    for (var i = 0; i < 2 * Math.PI; i += Math.PI / (steps / 2)) {
+
+        var xp = x + Math.sin(i) * h;
+        var yp = y + Math.cos(i) * v;
+
+        ctx.lineTo(
+            (xp -x) * Math.cos(a) - (yp -y) * Math.sin(a) +x,
+            (xp -x) * Math.sin(a) + (yp -y) * Math.cos(a) +y
+        );
+
+    }
+
+    ctx.closePath();
+    ctx.stroke();
+};
+
+/**
+ * draws a line
+ */
+dummy.line = noop;
+export line = func(ax, ay, bx, by, color) {
+
+    var ctx = application.highCtx;
+
+    color = (color === undefined ? 'rgb(200, 0, 0)' : color);
+
+    ctx.alpha = 1;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay);
+    ctx.lineTo(bx, by);
+    ctx.closePath();
+    ctx.stroke();
+};
+
+
+/**
+ * draws a rectangle
+ */
+dummy.rect = noop;
+export rect = func(ax, ay, bx, by, color) {
+
+    var ctx = application.highCtx;
+
+    color = (color === undefined ? 'rgb(200, 0, 0)' : color);
+
+    ctx.alpha = 0.3;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.rect(ax, ay, bx-ax, by-ay);
+    ctx.closePath();
+    ctx.stroke();
+};

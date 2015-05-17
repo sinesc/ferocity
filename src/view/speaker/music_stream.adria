@@ -1,0 +1,93 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+module MusicStream = proto {
+
+    protected htmlAudio: null,
+
+    public constructor: func(filename, start) {
+
+        this.htmlAudio = new window.Audio();
+        this.htmlAudio.src = filename;
+        this.htmlAudio.loop = false;
+
+        if (start) {
+            this.play();
+        }
+    },
+
+    public playing: prop {
+        get: func() {
+            var audio = this.htmlAudio;
+            return (audio.paused === false && audio.ended === false);
+        }
+    },
+
+    public play: func() {
+
+        var audio = this.htmlAudio;
+
+        if (audio.ended) {
+            audio.load();
+        }
+
+        audio.play();
+    },
+
+    public pause: func() {
+        this.htmlAudio.pause();
+    },
+
+    public loop: func(value) {
+        this.htmlAudio.loop = value;
+    },
+
+    public volume: func(value) {
+        this.htmlAudio.volume = value;
+    },
+
+    public fadeOut: func(finite duration, boolean destroy = true) {
+
+        var stepSize = this.htmlAudio.volume / 10;
+        var that = this;
+
+        var interval = setInterval(func() {
+
+            if (that.htmlAudio === null) {
+                clearInterval(interval);
+                return;
+            }
+
+            that.htmlAudio.volume -= Math.min(that.htmlAudio.volume, stepSize);
+
+            if (that.htmlAudio.volume <= 0) {
+                clearInterval(interval);
+                that.pause();
+                if (destroy) {
+                    that.destroy();
+                }
+            }
+        }, duration / 10 * 1000);
+    },
+
+    public destroy: func() {
+
+        this.htmlAudio.pause();
+        this.htmlAudio = null;
+    },
+
+};

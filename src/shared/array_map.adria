@@ -1,0 +1,71 @@
+
+// should be faster to iterate than a map, doesn't appear to be the case though
+
+import Map, WeakMap;
+
+module ArrayMap = proto {
+
+    public map: null,       // key => id
+    public array: null,     // id => object
+    private backref: null,  // object => key
+
+    public constructor: func() {
+
+        this.map = new Map();
+        this.array = new Array();
+        this.backref = new WeakMap();
+    },
+
+    public set: func(key, value) {
+
+        var id = this.array.insert(value);
+        this.map.set(key, id);
+        this.backref.set(value, key);
+    },
+
+    public delete: func _delete(key) {
+
+        // get array id of key
+
+        var id = this.map.get(key);
+
+        if (id !== undefined) {
+
+            // remove from array
+
+            var movedFromId = this.array.remove(id);
+
+            // Array::remove may have shifted the last entry into the previous position of the deleted element
+
+            if (movedFromId !== id) {
+
+                // last array element moved to id, get key for that element
+
+                var movedFromKey = this.backref.get(this.array[id]);
+
+                // update position of moved key
+
+                this.map.set(movedFromKey, id);
+            }
+
+            // remove from map
+
+            this.map.delete(key);
+
+        } else {
+
+            return null;
+        }
+    },
+
+    public get: func(key) {
+
+        var id = this.map.get(key);
+
+        if (id !== undefined) {
+            return this.array[id];
+        } else {
+            return undefined;
+        }
+    },
+};

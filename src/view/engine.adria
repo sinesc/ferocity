@@ -15,22 +15,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+var Listenable = require('astd/listenable');
+var Component = require('component');
+var Timeframe = require('timeframe');
+
 var Radiant = require('radiant/radiant');
+var Scene = require('radiant/scene');
+var Repository = require('radiant/sprite/repository');
 var Keyboard = require('web/keyboard');
 var MouseButton = require('web/mouse_button');
 var Fullscreen = require('web/fullscreen');
 var PointerLock = require('web/pointer_lock');
 var Cookie = require('web/cookie');
-var Component = require('component');
-var Listenable = require('astd/listenable');
-var Timeframe = require('timeframe');
+var Audio = require('audio');
+
 var BufferExchange = require('outsourced/buffer_exchange');
 var Collider = require('collider');
+
+//var dbg = 0;
 
 /**
  * ferocity base engine
  */
-module Engine = proto (Component) {
+module Engine = proto (Component) mixin (Listenable, Timeframe) {
 
     /**
      * helper instances
@@ -63,17 +70,17 @@ module Engine = proto (Component) {
     /**
      * virtual viewport size
      */
-    protected virtualWidth: 1680,
-    protected virtualHeight: 1050,
+    protected virtualWidth: 1920,
+    protected virtualHeight: 1080,
 
     /**
      * actual viewport
      */
-    protected viewportWidth: 1024,
-    protected viewportHeight: 576,
+    protected viewportWidth: 1920, //1024,
+    protected viewportHeight: 1080, //576,
     protected viewportStretch: false,
     protected viewportFullscreen: false,
-    protected viewportSmoothing: true,
+    protected viewportSmoothing: false,
 
     /**
      * screen
@@ -82,9 +89,8 @@ module Engine = proto (Component) {
     protected screenHeight: 0,
 
     /**
-     * ready state: number of events required to occur before being ready to render
+     * process state: frame readyness
      */
-    protected FRAME_READY: 2,
     protected processState: null,
 
     /**
@@ -93,8 +99,6 @@ module Engine = proto (Component) {
     public frameTime: 0,
     public frameDelta: 0,
     public frameId: 0,
-
-    public sprites: null,
 
     /**
      * engine constructor
@@ -108,22 +112,18 @@ module Engine = proto (Component) {
 
         this.radiant = new Radiant(this.viewportWidth, this.viewportHeight);
         host.appendChild(this.radiant.canvas);
-        this.scene = new Radiant.Scene(this.radiant, 10000);
+        this.scene = new Scene(this.radiant);
+        this.sprites = new Repository(this.radiant);
+
+        // audio
+
+        this.audio = new Audio();
 
         // various io
 
         this.cookie = new Cookie();
         this.keyboard = new Keyboard(host);
         this.mouseButton = new MouseButton(host);
-        //this.audio = new Audio();
-
-        this.sprites = { };
-
-        // set up batch rpc to collider
-
-        this.bexCollider = new BufferExchange(new Worker(colliderURL), 1);
-        this.bexCollider.on('data', this, this.colliderMessage);
-        this.collider = new Collider();
 
         // set up fullscreen/pointerlock and watch for fullscreen changes
 
@@ -135,40 +135,12 @@ module Engine = proto (Component) {
                 this.pointerLock.request(this.radiant.canvas);
             }
         });
-    },
 
-    /**
-     * load given sprite
-     *
-     * @param string name
-     * @param array params
-     * @param object context
-     * @param function callback invoked once sprite is ready
-     * @return sprite object
-     */
-    public loadSprite: func(string name, [ [ [ params = [] ], context = this ], callback = null ]) {
+        // set up batch rpc to collider
 
-        // check if sprite is loaded
-
-        if (typeof this.sprites[name] !== 'undefined') {
-
-            if (callback !== null) {
-                setTimeout(func() { callback.apply(context, params); }, 0);
-            }
-
-            return this.sprites[name];
-        }
-
-        // not yet loaded
-
-        var sprite = new Radiant.Sprite(this.radiant, name);
-        this.sprites[name] = sprite;
-
-        if (callback !== null) {
-            sprite.once('load', params, context, callback);
-        }
-
-        return sprite;
+        this.bexCollider = new BufferExchange(new Worker(colliderURL), 1);
+        this.bexCollider.on('data', this, this.colliderMessage);
+        this.collider = new Collider();
     },
 
     /**
@@ -211,11 +183,14 @@ module Engine = proto (Component) {
             mainUsage           : 0.0,
             mainColliderUsage   : 0.0,
             colliderUsage       : 0.0,
-            ready               : this.FRAME_READY -1,
-            tryFrame            : func() { that.tryFrame(); }
+            readyMain           : true,
+            readyCollider       : true,
+            nextFrame: func() {
+                that.engineFrame();
+            },
         };
 
-        this.tryFrame();
+        this.engineFrame();
     },
 
     /**
@@ -229,13 +204,14 @@ module Engine = proto (Component) {
     /**
      * try to start new frame, triggers on the last required event
      */
-    protected tryFrame: func() {
+    protected tryFrame: func(source) {
 
-        this.processState.ready++;
+        var state = this.processState;
 
-        if (this.processState.ready === this.FRAME_READY) {
-            this.processState.ready = 0;
-            this.engineFrame();
+        if (state.readyMain && state.readyCollider) {
+            state.readyMain = false;
+            state.readyCollider = false;
+            window.requestAnimationFrame(state.nextFrame);
         }
     },
 
@@ -255,7 +231,6 @@ module Engine = proto (Component) {
         this.frameId++;
         this.frameTime = state.time;
         this.frameDelta = state.time - state.lastTime;
-        assert(this.frameDelta > 0);
 
         // check for updated viewport dimensions
 
@@ -287,8 +262,8 @@ module Engine = proto (Component) {
         state.colliderUsage = this.collider.usage;
         state.lastTime = state.time;
 
-        window.requestAnimationFrame(state.tryFrame); //!todo temp
-        //setTimeout(state.tryFrame, 16);
+        state.readyMain = true;
+        this.tryFrame('main');
     },
 
     /**
@@ -300,12 +275,15 @@ module Engine = proto (Component) {
     protected colliderMessage: func(object readBuffer, sourceId) {
 
         var start = this.now;
+        var state = this.processState;
 
         this.collider.readBuffer(readBuffer.data);
         readBuffer.release();
 
-        this.processState.mainColliderUsage = this.now - start;
-        this.tryFrame();
+        state.mainColliderUsage = this.now - start;
+
+        state.readyCollider = true;
+        this.tryFrame('collider');
     },
 
     /**
@@ -369,6 +347,3 @@ module Engine = proto (Component) {
         }
     },
 };
-
-Engine.mixin(Listenable);
-Engine.mixin(Timeframe);

@@ -18,7 +18,6 @@
 var Component = require('component');
 var Factions = require('factions');
 var Entity = require('entity');
-//var geometry = require('geometry');
 
 module Level = proto (Component) {
 

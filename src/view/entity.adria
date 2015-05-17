@@ -26,12 +26,15 @@ module Entity = proto (Component) {
 
     protected faction: 'hostile',
     protected collisionFactions: [ 'friendly', 'chaos' ],
+    protected spawnFaction: Entity::faction,
+    protected spawnCollisionFactions: Entity::collisionFactions,
     protected colliderId: 0,
 
     protected testCollision: true,
     private previousTestCollision: true,
 
     protected hitpoints: 100,
+    protected damageValue: Entity::hitpoints,
     protected timeOfDeath: -1.0,
 
     public destructor: func() {
@@ -104,6 +107,24 @@ module Entity = proto (Component) {
     },
 
     /**
+     * spawns another entity and overrides its faction/collisionFactions with own settings
+     *
+     * @param func Type entity constructor
+     * @param Array constructArgs optional constructor arguments
+     * @return Entity
+     */
+    public spawn: func(func Type, Array constructArgs = [ ]) {
+
+        assert(Type === Entity || Type.prototype instanceof Entity, 'Type is not of Entity');
+
+        var entity = Type.construct(constructArgs);
+        entity.faction = this.spawnFaction;
+        entity.collisionFactions = this.spawnCollisionFactions;
+        application.level.entities.push(entity);
+        return entity;
+    },
+
+    /**
      * death handler, override for functionality
      *
      * @param timeOfDeath
@@ -123,6 +144,12 @@ module Entity = proto (Component) {
         }
 
         this.runTimedEvents();
+
+        // copy current hitpoints to damage value. this is used during collisions and only updated before the next frame. otherwise
+        // the second entity of a pair of colliding entities would inflict reduced or zero damage
+
+        this.damageValue = this.hitpoints;
+
         return true;
     },
 
@@ -156,7 +183,7 @@ module Entity = proto (Component) {
      * @param Entity other
      */
     public collision: func(Entity other) {
-        other.damage(this.hitpoints, this, null /*todo*/);
+        other.damage(this.damageValue, this, null /*todo*/);
     },
 
     /**

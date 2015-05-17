@@ -1,0 +1,40 @@
+/*
+ * tq2d JavaScript Sidescroller Engine
+ * Copyright (C) 2013 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Shot = require('../shot');
+
+/**
+ * ShotSeeking
+ *
+ * player-seeking projectile. not really useful for the player
+ */
+module ShotSeeking = proto (Shot) { };
+
+ShotSeeking::seekDelta = 150;
+ShotSeeking::timeToLive = 15;
+ShotSeeking::allowOffscreen = true;
+
+ShotSeeking::updatePosition = func() {
+
+    if (this.isDead) {
+        return;
+    }
+
+    var delta = application.frameDelta;
+    this.seek(application.level.player, this.seekDelta * delta);
+    this.polarMove(this.angle, delta * this.velocity);
+};

@@ -99,12 +99,6 @@ module Hostile = proto (Configurable) {
 
         this.fireWeapon(delta);
 
-        // destroy when there are no more actions queued and the entity is outside the screen, facing away from it
-//!todo
-        if (this.allowOffscreen === false && this.isOffscreen && this.refCount === 0 && this.queuedActions === 0) {
-            this.destroy();
-        }
-
         return true;
     },
 

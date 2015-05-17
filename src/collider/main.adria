@@ -16,28 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 require('astd/prototype').extend();
-var BufferExchange = require('outsourced/buffer_exchange');
-var Collider = require('./collider');
-var utils = require('utils');
 
-// set up buffer exchange
-
+global debug = require('debug');
+var Collider = require('collider');
 application(Collider);
-
-var bex = new BufferExchange(window);
-var usage = 0.0;
-
-bex.on('data', func(readBuffer, sourceId) {
-
-    var start = utils.now();
-    var writeBuffer = bex.getWriteBuffer();
-
-    application.writeBuffer(writeBuffer.data);      // sets send buffer (!todo need to work on naming)
-    application.reportUsage(usage);                 // include usage from previous frame in response
-    application.readBuffer(readBuffer.data);        // executes the received buffer
-
-    readBuffer.release();                           // release received buffer: becomes reusable again
-    writeBuffer.release();                          // release send-buffer: transfer to recipient
-
-    usage = utils.now() - start;
-});
+application.start();

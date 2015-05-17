@@ -25,14 +25,14 @@ var EntityAngular = require('entity/angular');
  *
  * baseclass for shot type entities
  */
-module Projectile = proto (Configurable) {
+module Projectile = proto (Configurable) mixin (EntityAngular) {
 
     public BaseRenderer: RendererGlow,
     public baseSprites: [ 'sprite/projectile/bolt_blue_60x36x1.jpg' ],
 
     public DeathRenderer: proto (RendererExplode) {
         glowScale: 0.5,
-        expMaxRadius: 0,
+        expMaxRadius: 0.0,
         expMinEffects: 1,
         expMaxEffects: 2
     },
@@ -40,14 +40,14 @@ module Projectile = proto (Configurable) {
     public deathSprites: null,
     public deathSounds: null,
 
-    public hitpoints: 10,
+    public hitpoints: 10.0,
     public timeToLive: 5,
     public allowOffscreen: false,
     public fadeDuration: 0.5,
-    public velocity: 500,
+    public velocity: 1000.0,
 
-    protected spawnX: 0,
-    protected spawnY: 0,
+    protected spawnX: 0.0,
+    protected spawnY: 0.0,
 
     public constructor: func(finite relativeSpawnX, finite relativeSpawnY, finite angle = 0, finite damage = this.hitpoints, boolean forceSilence = false, finite velocityModifier = 1) {
 
@@ -55,14 +55,13 @@ module Projectile = proto (Configurable) {
 
         this.spawnX = relativeSpawnX + application.level.x;
         this.spawnY = relativeSpawnY + application.level.y;
-
         this.velocity *= velocityModifier;
         this.hitpoints = damage;
         this.angle = angle;
         this.baseRenderer.angle = this.angle;
 
         if (forceSilence !== true) {
-            //this.playSound('/res/snd/laser_hum.ogg');   //!todo fix both
+            //this.playSound('sound/laser_hum.ogg');   //!todo fix both
         }
     },
 
@@ -96,5 +95,3 @@ module Projectile = proto (Configurable) {
         this.offset(this.spawnX, this.spawnY, this.angle, this.age * this.velocity);
     },
 };
-
-Projectile.mixin(EntityAngular);

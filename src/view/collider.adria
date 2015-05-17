@@ -16,6 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 var ColliderBase = require('../shared/collider_base');
+import Map;
 
 /**
  * MAIN PROCESS endpoint of Collider
@@ -24,6 +25,7 @@ module Collider = proto (ColliderBase) {
 
     protected entityByColliderId: null,
     public usage: 0.0,
+    public tests: 0,
 
     /**
      * instance constructor
@@ -31,7 +33,7 @@ module Collider = proto (ColliderBase) {
     public constructor: func() {
 
         parent->constructor();
-        this.entityByColliderId = { };
+        this.entityByColliderId = new Map();
     },
 
     /**
@@ -41,7 +43,7 @@ module Collider = proto (ColliderBase) {
      * @param object entity
      */
     public registerEntity: func(finite colliderId, object entity) {
-        this.entityByColliderId[colliderId] = entity;
+        this.entityByColliderId.set(colliderId, entity);
     },
 
     /**
@@ -50,7 +52,7 @@ module Collider = proto (ColliderBase) {
      * @param finite colliderId
      */
     public unregisterEntity: func(finite colliderId) {
-        delete this.entityByColliderId[colliderId];
+        this.entityByColliderId.delete(colliderId);
     },
 
     /**
@@ -61,15 +63,21 @@ module Collider = proto (ColliderBase) {
      */
     public collision: func(finite collidableIdA, finite collidableIdB) {
 
-        var entityA = this.entityByColliderId[collidableIdA];
-        var entityB = this.entityByColliderId[collidableIdB];
+        var entityA = this.entityByColliderId.get(collidableIdA);
+        var entityB = this.entityByColliderId.get(collidableIdB);
 
-        entityA.collision(entityB);
-        entityB.collision(entityA);
+        if (typeof entityA === 'object' && typeof entityB === 'object') {
+            entityA.collision(entityB);
+            entityB.collision(entityA);
+        }
     },
 
     public reportUsage: func(finite usage) {
         this.usage = usage;
+    },
+
+    public reportTests: func(finite tests) {
+        this.tests = tests;
     },
 
 

@@ -37,7 +37,7 @@ module Exhaust = proto (Glow) {
 /**
  * rendering composite effect
  */
-Exhaust::composite = Exhaust::CMP_COPY;
+Exhaust::composite = 'COPY';
 
 /**
  * default glow color
@@ -127,5 +127,5 @@ Exhaust::draw = func(x, y) {
 
     alpha = this.glowAlpha *  this.exhaustIntensity * Math.rand(0.5, 1);
     size = this.glowScale * this.exhaustIntensity * 2;
-    ctx[2].drawSprite(this.glow, 0, x + this.offsetX + glowOffsetX, y + this.offsetY + glowOffsetY, this.CMP_BLEND, alpha, angle, size);
+    ctx[2].drawSprite(this.glowSprite, 0, x + this.offsetX + glowOffsetX, y + this.offsetY + glowOffsetY, this.CMP_BLEND, alpha, angle, size);
 };

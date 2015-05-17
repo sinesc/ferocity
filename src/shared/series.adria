@@ -22,7 +22,7 @@
  * @param rate update rate in seconds
  * @param decimals in result
  */
-Math.Series = func(rate, decimals) {
+module Series = func(finite rate = 1) {
 
     var lastGetTime, minValue, maxValue, avgValue, totalValue, numValues;
 
@@ -34,9 +34,6 @@ Math.Series = func(rate, decimals) {
         total   : 0.0,
         num     : 0.0
     };
-
-    rate = (rate !== undefined ? rate : 1);
-    decimals = (decimals !== undefined ? decimals : 2);
 
     var reset = func(now) {
 
@@ -50,7 +47,7 @@ Math.Series = func(rate, decimals) {
 
     this.lastValue = 0;
 
-    this.set = func(value) {
+    this.set = func(value, finite getFixed = -2) {
 
         minValue = (value < minValue ? value : minValue);
         maxValue = (value > maxValue ? value : maxValue);
@@ -65,20 +62,23 @@ Math.Series = func(rate, decimals) {
         this.lastValue = value;
 
         numValues++;
+
+        return getFixed !== -2 ? this.get(getFixed) : null;
     };
 
-    this.get = func() {
+    this.get = func(decimals = -1) {
 
         var now = Date.now();
         var delta = (now - lastGetTime) / 1000;
+        var diff = maxValue - minValue;
 
         if (delta > rate) {
             result = {
-                min     : minValue.toFixed(decimals),
-                avg     : avgValue.toFixed(decimals),
-                max     : maxValue.toFixed(decimals),
-                diff    : (maxValue - minValue).toFixed(decimals),
-                total   : totalValue.toFixed(decimals),
+                min     : decimals < 0 ? minValue : minValue.toFixed(decimals),
+                avg     : decimals < 0 ? avgValue : avgValue.toFixed(decimals),
+                max     : decimals < 0 ? maxValue : maxValue.toFixed(decimals),
+                diff    : decimals < 0 ? diff : diff.toFixed(decimals),
+                total   : decimals < 0 ? totalValue : totalValue.toFixed(decimals),
                 num     : numValues,
                 delta   : delta
             };

@@ -23,7 +23,7 @@ var Interval = require('interval');
  *
  * base for all engine objects
  */
-module Component = proto {
+module Component = proto mixin (Interval) {
 
     public constructionTime: 0.0,
     protected timeline: null,
@@ -167,5 +167,3 @@ module Component = proto {
     },
 
 };
-
-Component.mixin(Interval);

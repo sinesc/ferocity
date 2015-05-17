@@ -32,6 +32,10 @@ module Asteroid = proto (Hostile) {
     public smallExplosions: null,
     public largeExplosions: null,
 
+    public minShards: 20,
+    public maxShards: 50,
+    public shardThreshold: 0.65,
+
     protected faction: 'hostile',
     protected collisionFactions: [ 'friendly', 'chaos' ],
 
@@ -53,7 +57,7 @@ module Asteroid = proto (Hostile) {
         this.deathRenderer.glowDecay = 15 + 15 * scale;
         this.deathRenderer.scaleX = scale;
         this.deathRenderer.scaleY = scale;
-        this.deathRenderer.expMaxRadius = 30 * scale;
+        this.deathRenderer.expMaxRadius = 45 * scale;
 
         if (this.DustRenderer !== null && this.dustSprites !== null && scale > 0.5 && application.options.gfxDust) {
             this.deathRenderer = new this.DeathRenderer(this.dustSprites.random());
@@ -63,7 +67,7 @@ module Asteroid = proto (Hostile) {
 
         if (scale < 0.75) {
             this.deathRenderer.expMinEffects = 1;
-            this.deathRenderer.expMaxEffects = 2;
+            this.deathRenderer.expMaxEffects = 3;
         }
 
         this.baseRenderer.offsetT = Math.random() * 2;
@@ -84,7 +88,7 @@ module Asteroid = proto (Hostile) {
         }
 
         if (this.dustRenderer !== null) {
-            this.dustRenderer.draw(this.x, this.y);
+            this.dustRenderer.draw((this.x - application.level.x) | 0, (this.y - application.level.y) | 0);
         }
 
         return true;
@@ -98,14 +102,14 @@ module Asteroid = proto (Hostile) {
             this.dustRenderer.fade(1);
         }
 
-        if (this.Shard !== null && this.baseRenderer.scaleX > 0.65) {
+        if (this.Shard !== null && this.baseRenderer.scaleX > this.shardThreshold) {
 
-            var num = Math.ceil(this.baseRenderer.scaleX * 10);
+            var num = Math.ceil(this.baseRenderer.scaleX * Math.rand(this.minShards, this.maxShards));
             var x = this.x - application.level.x;
             var y = this.y - application.level.y;
 
             for (var i = 0; i < num; i++) {
-                application.level.addEntity(this.Shard, [ x, y, this.baseRenderer.scaleX / 2 ]);
+                application.level.addEntity(this.Shard, [ x, y, this.baseRenderer.scaleX * Math.rand(0.1, 0.4) ]);
             }
         }
     },

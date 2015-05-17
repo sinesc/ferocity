@@ -1,6 +1,6 @@
 /*
- * tq2d JavaScript Sidescroller Engine
- * Copyright (C) 2013 Dennis Möhlmann <mail@dennismoehlmann.de>
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -15,8 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-var Projectile = require('game/projectile');
 var deg2rad = require('geometry').deg2rad;
+var Directional = require('speaker/directional');
 
 /**
  * Weapon drop-in base
@@ -50,11 +50,6 @@ module Weapon = proto {
     public mountType        : Weapon::MOUNT_SINGLE,
 
     /**
-     * projectile constructor
-     */
-    public Projectile: Projectile,
-    
-    /**
      * shot interval (within a burst, if cooldown is used)
      */
     public interval: 0.25,
@@ -68,7 +63,7 @@ module Weapon = proto {
      * frame time the next shot may be fired
      */
     public nextShot: 0.0,
-    
+
     /**
      * can be used within a burst to track the current shot. -1 indicates the weapon is in cooldown.
      * will be reset to 0 after recovery has expired
@@ -164,16 +159,18 @@ module Weapon = proto {
             this.whichShot = 0;
         }
 
-        // for doFire() implementation convenience, calulate absolute firing position (single mounts only)
 
         if (this.sound !== null) {
-            application.audio.playDirectional(this.sound, this.soundPriority, this.owner.x, this.owner.y, this.owner.velocityX, this.owner.velocityY);
+            new Directional(application.audio, this.sound);
+            //application.audio.playDirectional(this.sound, this.soundPriority, this.owner.x, this.owner.y, this.owner.velocityX, this.owner.velocityY);
         }
+
+        // for doFire() implementation convenience, calulate absolute firing position (single mounts only)
 
         if (this.mountType === this.MOUNT_SINGLE) {
 
-            var startX = this.owner.x + this.offsetX + Math.cos(angle * deg2rad) * distance;
-            var startY = this.owner.y + this.offsetY + Math.sin(angle * deg2rad) * distance;
+            var startX = this.owner.x - application.level.x + this.offsetX + Math.cos(angle * deg2rad) * distance;
+            var startY = this.owner.y - application.level.y + this.offsetY + Math.sin(angle * deg2rad) * distance;
             enterInterval = this.doFire(angle, distance, startX, startY);
 
         } else {
@@ -209,5 +206,3 @@ module Weapon = proto {
         return true;
     },
 };
-
-

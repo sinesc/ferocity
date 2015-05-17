@@ -96,11 +96,11 @@ Mirror::draw = func(x, y) {
 
         // glow alpha and draw
 
-        ctx[0].drawSprite(this.glow, 0, x + this.offsetX, y + this.offsetY, this.CMP_BLEND, value * this.glowAlpha, this.angle, this.glowScale * value);
+        ctx[0].drawSprite(this.glowSprite, 0, x + this.offsetX, y + this.offsetY, this.CMP_BLEND, value * this.glowAlpha, this.angle, this.glowScale * value);
     }
 
     if (this.fadeStart === -1) {
-        ctx[0].drawSprite(this.glow, 0, x + this.offsetX, y + this.offsetY, this.CMP_BLEND, this.glowAlpha * 0.5, this.angle, this.glowScale * 0.1);
+        ctx[0].drawSprite(this.glowSprite, 0, x + this.offsetX, y + this.offsetY, this.CMP_BLEND, this.glowAlpha * 0.5, this.angle, this.glowScale * 0.1);
     }
 
     ctx[1].drawSprite(this.sprite, frameId, x + this.offsetX, y + this.offsetY, this.composite, alpha * 0.9, this.angle);

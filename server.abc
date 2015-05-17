@@ -6,8 +6,8 @@
     "files": [
         "server/main.adria"
     ],
-    "outFile": "../server.js",
-    "basePath": "./",
+    "basePath": "./src/",
+    "outFile": "../bin/server.js",
     "paths": [  ],
     "extension": ".adria",
     "platform": "node",
