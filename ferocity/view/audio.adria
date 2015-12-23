@@ -1,0 +1,100 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var AudioContext = require('./web/audio_context');
+var MusicStream = require('./speaker/music_stream');
+
+module Audio = proto  {
+
+    public refDistance: 0.2,   // distance for gain 1
+    public rolloffFactor: 5,
+    public dopplerRatio: 0.1,
+    public ctx: null,
+
+    protected currentMusicStream: null,
+
+    public constructor: func() {
+
+        this.ctx = new AudioContext();
+
+        // create audio-nodes
+
+        this.masterGain = this.ctx.createGain();
+        this.compressor = this.ctx.createDynamicsCompressor();
+        //this.compressor.threshold = -5;
+        // graph
+
+        this.masterGain.connect(this.compressor);
+        this.compressor.connect(this.ctx.destination);
+
+        //this.masterGain.connect(this.ctx.destination);
+    },
+
+    /**
+     * set listener position for directional audio sources
+     *
+     * @param finite x
+     * @param finite y
+     */
+    public listenerPosition: func(finite x, finite y) {
+        this.ctx.listener.setPosition(x, y, 0.25);
+    },
+
+    /**
+     * plays given file as background music, optionally crossfading from previous music
+     *
+     * @param string filename
+     * @param finite crossFadeDuration
+     */
+    public playMusicStream: func(string filename, finite crossFadeDuration = 2.0) {
+
+        var stream = this.currentMusicStream;
+
+        if (stream !== null && stream.playing) {
+            stream.fadeOut(crossFadeDuration, true);
+        }
+
+        this.currentMusicStream = new MusicStream(filename, true);
+    },
+
+    /**
+     * stops current background music
+     *
+     * @param finite fadeoutDuration
+     */
+    public stopMusicStream: func(fadeoutDuration) {
+
+        var stream = this.currentMusicStream;
+
+        if (stream !== null && stream.playing) {
+            if (fadeoutDuration > 0) {
+                stream.fadeOut(fadeoutDuration);
+            } else {
+                stream.pause();
+            }
+        }
+    },
+
+    /**
+     * changes background music volume
+     *
+     * @param finite fadeoutDuration
+     */
+    public adjustMusicStream: func(finite volume) {
+        this.currentMusicStream.volume(volume);
+    },
+};

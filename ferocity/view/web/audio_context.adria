@@ -1,0 +1,44 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * a dummy audio context doing nothing
+ */
+var DummySource = proto {
+    connect: func() { },
+    start: func(x) { },
+};
+
+module AudioContext = (func() {
+// window.AudioContext || window.webkitAudioContext ||
+    return  (func() {
+
+        this.destination = null;
+        this.activeSourceCount = -1;
+        this.createGain = func() { return new DummySource(); };
+        this.createPanner = this.createGain;
+        this.createBufferSource = this.createGain;
+        this.createDynamicsCompressor = this.createGain;
+        this.decodeAudioData = func(a, b) {
+            setTimeout(func() {
+                b(a);
+            }, 0);
+        };
+    });
+
+})();

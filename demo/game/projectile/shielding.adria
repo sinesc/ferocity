@@ -1,0 +1,79 @@
+/*
+ * tq2d JavaScript Sidescroller Engine
+ * Copyright (C) 2013 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Shot = require('../shot');
+var deg2rad = require('ferocity/view/geometry').deg2rad;
+
+/**
+ * ShotShielding
+ *
+ * a shot that keeps circling the ship until it hits something or dies from age
+ *
+ * @param owner shield owning entity
+ * @param startX
+ * @param startY
+ * @param angle
+ * @param damage
+ * @param forceSilent
+ * @param velocityModifier
+ */
+module ShotShielding = proto (Shot) {
+    constructor: func(owner, startX, startY, angle, damage, forceSilent, velocityModifier) {
+
+        assert(owner instanceof require('../../entity'));
+
+        Shot->constructor(startX, startY, angle, damage, forceSilent, velocityModifier);
+
+        this.owner = owner;
+    }
+};
+
+ShotShielding::allowOffscreen = true;
+ShotShielding::timeToLive = 10;
+ShotShielding::timeToPersist = 2;
+
+ShotShielding::offsetX = 0;
+ShotShielding::offsetY = 0;
+ShotShielding::radiusH = 80;
+ShotShielding::radiusV = 40;
+ShotShielding::velocity = 20;
+
+ShotShielding::owner = null;
+
+ShotShielding::think = func() {
+
+    Shot->think();
+
+    if (this.owner.isDead) {
+        this.timeToLive = this.timeToPersist;
+    }
+};
+
+ShotShielding::updatePosition = func() {
+
+    if (this.isDead) {
+        return;
+    }
+
+    var angle = Math.random() * 360;
+
+    this.angle = angle;
+    this.baseRenderer.angle = angle;
+
+    this.x = this.owner.x + this.offsetX + Math.cos((90 + angle) * deg2rad) * this.radiusH;
+    this.y = this.owner.y + this.offsetY + Math.sin((90 + angle) * deg2rad) * this.radiusV;
+};

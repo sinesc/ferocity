@@ -1,0 +1,10 @@
+{
+    "files": [
+        "server.adria"
+    ],
+    "outFile": "./server.js",
+    "platform": "node",
+    "headerFile": "../license-header",
+    "shellwrap": true,
+    "assert": true
+}

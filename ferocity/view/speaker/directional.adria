@@ -1,0 +1,60 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Speaker = require('../speaker');
+
+module Directional = proto (Speaker) {
+
+    protected panner: null,
+
+    public constructor: func(object audio, string file, boolean start = true) {
+
+        Speaker->constructor(audio, file);
+
+        this.panner = audio.ctx.createPanner();
+        this.panner.refDistance = audio.refDistance;
+        this.panner.rolloffFactor = audio.rolloffFactor;
+        this.source = this.createSource(this.buffer.data, this.panner);
+
+        if (start) {
+            this.playWhenReady();
+        }
+    },
+
+    public setOpt: func(finite refDistance, finite rolloffFactor) {
+
+        this.panner.refDistance = refDistance;
+        this.panner.rolloffFactor = rolloffFactor;
+    },
+
+    public setPosition: func(finite x, finite y) {
+
+        this.panner.setPosition(x, y, 0);
+    },
+
+    public setVelocity: func(finite dx, finite dy) {
+
+        this.panner.setVelocity(dx, dy, 0);
+    },
+
+    public destroy: func() {
+
+        //this.panner.disconnect(0);
+        this.panner = null;
+        Speaker->destroy();
+    },
+};

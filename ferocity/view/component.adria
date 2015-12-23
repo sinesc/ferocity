@@ -1,0 +1,169 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Progression = require('./progression');
+var Interval = require('./interval');
+
+/**
+ * Component
+ *
+ * base for all engine objects
+ */
+module Component = proto mixin (Interval) {
+
+    public constructionTime: 0.0,
+    protected timeline: null,
+    protected disposable: false,
+    protected _timelineInterrupted: false,
+
+    public constructor: func() {
+        this.constructionTime = this.now;
+    },
+
+    /**
+     * component destructor, extend as needed
+     */
+    protected destructor: func() {
+        if (this.timeline !== null) {
+            this.interruptTimedEvents();
+            this.timeline.destroy();
+        }
+    },
+
+    /**
+     * default time provider
+     */
+    public now: prop {
+        get: func() {
+            return application.frameTime;
+        }
+    },
+
+    /**
+     * time since the component was created
+     */
+    public age: prop {
+        get: func() {
+            return (this.now - this.constructionTime);
+        },
+        set: func(x) {
+            throw new Error('Cannot set age');
+        }
+    },
+
+    /**
+     * calls destructor for component unless already destroyed.
+     * passes along all received arguments
+     *
+     * @final
+     */
+    public destroy: func(...args) {
+
+        if (this.disposable === false) {
+            this.disposable = true;
+            this.destructor.apply(this, args);
+        }
+    },
+
+    /**
+     * absolute delayed call
+     *
+     * @param absoluteTime frametime at or after which to call given callback
+     * @param context callback execution context
+     * @param callback
+     * @param args array of arguments to apply to the callback
+     */
+    public at: func(finite absoluteTime, [ [ args = [ ] ], object context = this ], func callback) {
+
+        if (this.timeline === null) {
+            this.timeline = new Progression();
+        }
+
+        this.timeline.insert(absoluteTime, func() {
+            callback.apply(context, args);
+        });
+    },
+
+    /**
+     * relative delayed call
+     *
+     * @see Component::at()
+     */
+    public in: func doIn(...args) {
+
+        args[0] += this.now;
+        this.at.apply(this, args);
+    },
+
+    /**
+     * check for timed events to run at and before current engine.frameTime
+     *
+     * @param frametime optional, if given run only events up to given frametime
+     */
+    public runTimedEvents: func(finite now = this.now) {
+
+        if (this.timeline === null || this.disposable) {
+            return;
+        }
+
+        // revoke previous interrupt
+
+        this._timelineInterrupted = false;
+
+        while (this.timeline.peek(now) !== -1) {
+
+            // fetch event from timeline and call it
+
+            this.timeline.shift()();
+
+            // exit if object was destroyed
+
+            if (this.disposable || this._timelineInterrupted) {
+                return;
+            }
+
+        }
+    },
+
+    /**
+     * clear all timed events
+     * (also stops processing events if currently within runTimedEvents())
+     */
+    public clearTimedEvents: func() {
+
+        if (this.timeline === null) {
+            return;
+        }
+
+        this.interruptTimedEvents();
+        this.timeline.clear();
+    },
+
+    /**
+     * interrupt timeline from within a timed event. prevents further timeline execution until
+     * runTimedEvents is called again
+     */
+    public interruptTimedEvents: func() {
+
+        if (this.timeline === null) {
+            return;
+        }
+
+        this._timelineInterrupted = true;
+    },
+
+};

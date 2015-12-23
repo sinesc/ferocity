@@ -1,11 +1,10 @@
 {
     "depend": "config.inc",
     "files": [
-        "view/main.adria"
+        "ferocity.adria"
     ],
-    "outFile": "../www/view.js",
-    "paths": [ "./view/", "./shared/", "../../outsourcedlib/", "../../radiantlib/", "../../astdlib/" ],
-    "extension": ".adria",
+    "outFile": "./bin/view.js",
+    "paths": [ "./ferocity/view/", "./ferocity/shared/", "../outsourcedlib/", "../radiantlib/", "../astdlib/" ],
     "platform": "web",
-    "headerFile": "../license-header"
+    "headerFile": "./license-header"
 }

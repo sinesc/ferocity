@@ -1,0 +1,9 @@
+{
+    "files": [
+        "game/main.adria"
+    ],
+    "outFile": "./www/view.js",
+    "paths": [ "../", "../../outsourcedlib/", "../../radiantlib/", "../../astdlib/" ],
+    "platform": "web",
+    "headerFile": "../license-header"
+}

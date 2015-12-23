@@ -1,0 +1,68 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+/**
+ * cookie wrapper object
+ */
+module Cookie = proto {
+
+    protected cookieData: null,
+
+    public constructor: func() {
+
+        this.cookieData = { };
+
+        var pairs = document.cookie.split(';');
+
+        for (var id in pairs) {
+            var pair = pairs[id];
+
+            pair = pair.split('=');
+
+            if (pair.length === 2) {
+                try {
+                    this.cookieData[pair[0].trim()] = JSON.parse(decodeURIComponent(pair[1]).trim());
+                } catch (e) { }
+            }
+        }
+    },
+
+    public set: func(string key, value, finite expireDays = 32) {
+
+        var expireDate = new Date();
+        expireDate.setDate(expireDate.getDate() + expireDays);
+
+        document.cookie = key + "=" + encodeURIComponent(JSON.stringify(value)) + (expireDays === undefined ? '' : '; expires=' + expireDate.toUTCString());
+        this.cookieData[key] = value;
+    },
+
+    public get: func(string key) {
+        return this.cookieData[key];
+    },
+
+    public data: func() {
+        return this.cookieData;
+    },
+
+    public unset: func(string key) {
+
+        document.cookie = key + '= ; expires=Thu, 22 May 1980 04:00:00 GMT';
+        delete this.cookieData[key];
+    },
+
+};

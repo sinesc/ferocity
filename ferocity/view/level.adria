@@ -1,0 +1,129 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Component = require('./component');
+var Factions = require('./factions');
+var Entity = require('./entity');
+
+module Level = proto (Component) {
+
+    protected factionNames: null,
+
+    protected factions: null,
+    protected entities: null,
+    protected player: null,
+
+    /**
+     * constructor
+     *
+     * @param Level? previous optional previous level from which to copy existing entities/factions
+     */
+    public constructor: func(Level? previous = null) {
+
+        parent->constructor();
+
+        if (previous !== null) {
+
+            this.entities = previous.entities;
+
+        } else {
+
+            this.factions = new Factions();
+            this.factions.add(this.factionNames);
+            this.entities = [ ];
+            this.initializeGrid();
+        }
+    },
+
+    public populate: func() { },
+
+    /**
+     * immediately constructs given Entity with given constructorArguments
+     *
+     * @param func Type Entity based type
+     * @param Array constructorArguments array of arguments to pass to constructor
+     * @param func initFunction function to call from within the context of the entity
+     * @param Array initArgs array of function arguments
+     */
+    public addEntity: func(func Type, Array constructArgs = [ ], func? initFunction = null, Array? initArgs = null) {
+
+        assert(Type === Entity || Type.prototype instanceof Entity, 'Type is not of Entity');
+
+        var entity = Type.construct(constructArgs);
+
+        if (initFunction !== null) {
+            initFunction.apply(entity, initArgs);
+        }
+
+        this.entities.push(entity);
+        return entity;
+    },
+
+    /**
+     * run all controlled entities
+     */
+    public frame: func() {
+
+        var delta = application.frameDelta;
+        var entities = this.entities;
+        var id = entities.length;
+        var entity;
+
+        application.scene.setScreenOffset(-this.x, -this.y);
+
+        while (id--) {
+
+            entity = entities[id];
+
+            // if this entity is disposable, remove it (switches last one into this one's place)
+
+            if (entity.disposable) {
+                entities.remove(id);
+                continue;
+            }
+
+            // perform entity tasks
+
+            entity.think(delta);
+            entity.draw();
+
+            // add to collision test
+
+            entity.updateCollider();
+        }
+
+        // perform collision tests on gathered grid-entries
+
+        application.collider.test();
+
+        // perform timeline tasks last, since one of the tasks might be to destroy the level and create a new one
+        // in that case, think would be run from new as well as from the old level once
+
+        this.runIntervals(this.now);
+        this.runTimedEvents();
+    },
+
+    /**
+     * initializes the collision grid
+     */
+    protected initializeGrid: func() {
+
+        var width = application.virtualWidth;
+        var height = application.virtualHeight;
+        application.collider.createGrid(width, height, this.factions.length, 10, Math.ceil(10*width/height));
+    },
+};

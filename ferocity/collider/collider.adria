@@ -1,0 +1,193 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var BufferExchange = require('outsourced/buffer_exchange');
+var ColliderBase = require('../shared/collider_base');
+var Collidable = require('./collidable');
+var Grid = require('./grid');
+var utils = require('../shared/utils');
+var ArrayMap = require('../shared/array_map');
+//import Map;
+
+/**
+ * WORKER PROCESS endpoint of Collider
+ */
+module Collider = proto (ColliderBase) {
+
+    protected collidables: null,
+    protected grid: null,
+
+    /**
+     * setup collision grid
+     */
+    public createGrid: func(finite width, finite height, finite factions, finite cols, finite rows) {
+
+        this.grid = new Grid(width, height, factions, cols, rows);
+        this.collidables = new ArrayMap();
+    },
+
+    /**
+     * update grid width/height
+     */
+    public updateGrid: func(finite width, finite height) {
+        this.grid.setSize(width, height);
+    },
+
+    /**
+     * add a collidable to the grid
+     *
+     * @param finite collidableId
+     * @param finite x
+     * @param finite y
+     * @param finite angle
+     * @param finite factionId
+     */
+    public addCollidable: func(finite collidableId, finite x, finite y, finite angle, finite factionId) {
+
+        var collidable = new Collidable(collidableId, x, y, angle, factionId);
+        this.collidables.set(collidableId, collidable);
+    },
+
+    /**
+     * change position/angle of a collidable
+     *
+     * @param finite collidableId
+     * @param finite x
+     * @param finite y
+     * @param finite angle
+     */
+    public updateCollidable: func(finite collidableId, finite x, finite y, finite angle, finite suspended) {
+
+        var collidable = this.collidables.get(collidableId);
+
+        if (collidable === undefined) {
+            return;
+        }
+
+        collidable.x = x;
+        collidable.y = y;
+        collidable.angle = angle;
+        collidable.suspended = suspended === 1;
+    },
+
+    /**
+     * add a faction to a collidable
+     *
+     * @param finite collidableId
+     * @param finite factionId
+     */
+    public addCollisionFaction: func(finite collidableId, finite factionId) {
+        this.collidables.get(collidableId).addCollisionFaction(factionId);
+    },
+
+    /**
+     * add a bounding ellipse to a collidable
+     *
+     * @param finite collidableId
+     * @param finite eh ellipse horizontal size
+     * @param finite eV ellipse vertical size
+     * @param finite eAngle ellipse rotation angle
+     * @param finite eOffsetDistance offset distance from origin
+     * @param finite eOffsetAngle offset rotation angle
+     * @param finite eOcclusion occlusion factor for background objects
+     */
+    public addBounds: func(finite collidableId, finite eH, finite eV, finite eAngle, finite eOffsetDistance, finite eOffsetAngle, finite eOcclusion) {
+        this.collidables.get(collidableId).addBounds(eH, eV, eAngle, eOffsetDistance, eOffsetAngle, eOcclusion);
+    },
+
+    /**
+     * remove a collidable from the grid
+     *
+     * @param finite collidableId
+     */
+    public removeCollidable: func(finite collidableId) {
+        this.collidables.delete(collidableId);
+    },
+
+    private populate: func() {
+
+        var grid = this.grid;
+        var collidables = this.collidables.array; //.values();
+
+        // reset grid with current collidables and test
+
+        //grid.clear();
+
+        //for (var collidable of collidables) {
+        for (var id = 0, len = collidables.length; id < len; ++id) {
+            var collidable = collidables[id];
+            if (collidable.suspended === false) {
+                grid.add(collidable);
+            }
+        }
+    },
+
+    /**
+     * test for collisions, each collision will invoke collision(id1, id2) on the other endpoint
+     */
+    public test: func() {
+
+        this.grid.clear();
+
+        this.populate();
+
+        var collisions = this.grid.test(this);
+
+        // invoke collisions method on view
+
+        if (collisions !== null) {
+
+            var keys = Object.keys(collisions);
+
+            for (var i = 0, len = keys.length; i < len; ++i) {
+                this.collision(collisions[keys[i]][0].id, collisions[keys[i]][1].id);
+            }
+        }
+    },
+
+    /**
+     * start listening to main worker
+     * !todo refactor ondata to methdod, usage+bex to property
+     */
+    public start: func() {
+
+        var bex = new BufferExchange(window);
+        var usage = 0.0;
+
+        bex.on('data', func(readBuffer, sourceId) {
+
+//console.log('collider working');
+            var start = utils.now();
+            var writeBuffer = bex.getWriteBuffer();
+
+            application.writeBuffer(writeBuffer.data);      // sets send buffer (!todo need to work on naming)
+
+            application.reportUsage(usage);                 // include usage from previous frame in response
+            application.reportTests(application.grid !== null ? application.grid.tests : 0);
+
+            application.readBuffer(readBuffer.data);        // executes the received buffer
+
+            readBuffer.release();                           // release received buffer: becomes reusable again
+            writeBuffer.release();                          // release send-buffer: transfer to recipient
+//console.log('collider done');
+            usage = utils.now() - start;
+        });
+    },
+
+};
+
+Collider::setupEndPoint('worker');

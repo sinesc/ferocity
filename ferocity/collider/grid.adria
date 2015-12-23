@@ -1,0 +1,156 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Sector = require('./sector');
+var Collidable = require('./collidable');
+
+/**
+ * a collision detection grid
+ */
+module Grid = proto {
+
+    protected cols      : 0,
+    protected rows      : 0,
+    protected rowSize   : 0,
+    protected colSize   : 0,
+    protected sectors   : null,
+
+    public tests        : 0,
+
+    /**
+     * constructs new collision detection grid
+     *
+     * @param finite width world width
+     * @param finite height world height
+     * @param finite factions number of factions to support
+     * @param finite rows total sectors in x
+     * @param finite cols total sectors in y
+     */
+    public constructor: func(finite width, finite height, finite factions, finite cols = 10, finite rows = 6) {
+
+        var sectors = new Array(rows * cols);
+
+        // create the grid-structure
+
+        for (var x = 0; x < cols; x++) {
+            for (var y = 0; y < rows; y++) {
+                sectors[x + cols * y] = new Sector(factions);
+            }
+        }
+
+        this.cols = cols;
+        this.rows = rows;
+
+        this.rowSize = Math.ceil(height / rows);
+        this.colSize = Math.ceil(width / cols);
+        this.sectors = sectors;
+    },
+
+    /**
+     * update grid width/height while maintaining rows/columns
+     *
+     * @param finite width
+     * @param finite height
+     */
+    public setSize: func(finite width, finite height) {
+
+        this.rowSize = Math.ceil(height / this.rows);
+        this.colSize = Math.ceil(width / this.cols);
+    },
+
+    /**
+     * adds an entity to the grid by placing it in all sectors it occupies
+     *
+     * @param Entity entity
+     */
+    public add: func(Collidable entity) {
+
+        var bounds = entity.bounds;
+
+        if (bounds === null) {
+            return;
+        }
+
+        var x, y;
+        var cols = this.cols;
+        var rows = this.rows;
+        var sectors = this.sectors;
+
+        var colFrom = Math.floor((entity.x + bounds.outerX1) / this.colSize);
+        var colTo = Math.floor((entity.x + bounds.outerX2) / this.colSize);
+        var rowFrom = Math.floor((entity.y + bounds.outerY1) / this.rowSize);
+        var rowTo = Math.floor((entity.y + bounds.outerY2) / this.rowSize);
+
+        colFrom = Math.min(cols -1, Math.max(0, colFrom));
+        colTo = Math.min(cols -1, Math.max(0, colTo));
+        rowFrom = Math.min(rows -1, Math.max(0, rowFrom));
+        rowTo = Math.min(rows -1, Math.max(0, rowTo));
+
+        for (x = colFrom; x <= colTo; ++x) {
+            for (y = rowFrom; y <= rowTo; ++y) {
+                sectors[x + cols * y].add(entity);
+            }
+        }
+    },
+
+    /**
+     * clears the grid by removing all entities from all sectors
+     */
+    public clear: func() {
+
+        var sectors = this.sectors;
+        var id = sectors.length;
+
+        while (id--) {
+            sectors[id].clear();
+        }
+
+        this.tests = 0;
+    },
+
+    /**
+     * tests all sectors for collisions
+     * @return object collisionmap
+     */
+    public test: func() {
+
+        var collisionMap = { };
+        var sectors = this.sectors;
+        var id = sectors.length;
+        var collisions = 0;
+        var sector;
+
+        while (id--) {
+            sector = sectors[id];
+            collisions += sector.test(collisionMap);
+            this.tests += sector.tests;
+        }
+
+        //<dev
+        /*for (var x = 0; x < this.cols; x++) {
+            for (var y = 0; y < this.rows; y++) {
+                sector = sectors[x + this.cols * y];
+
+                debug('grid').rect(x * this.colSize, y * this.rowSize, (x+1) * this.colSize -1, (y+1) * this.rowSize -1);
+                debug('grid').text(x * this.colSize +20, y * this.rowSize + 20, [ sector.total, sector.tests, sector.collisions ]);
+            }
+        }*/
+        //dev>
+
+        return (collisions > 0 ? collisionMap : null);
+    },
+};

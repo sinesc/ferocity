@@ -1,0 +1,126 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Pairs = require('./pairs');
+
+var IntervalData = proto {
+    end     : 0.0,
+    context : null,
+    callback: null,
+    constructor: func(end, context, callback) {
+        this.end = end;
+        this.context = context;
+        this.callback = callback;
+    }
+};
+
+/**
+ * Interval
+ *
+ * provides means to keep performing an action over the course of a given interval
+ */
+module Interval = proto {
+
+    protected _intervalData: null,
+    protected _intervalSorted: false,
+
+    /**
+     * adds an interval
+     *
+     * @param start
+     * @param end
+     * @param context
+     * @param callback
+     */
+    public interval: func(finite start, finite end, [ object context = this ], callback) {
+
+        if (this._intervalData === null) {
+            this._intervalData = new Pairs();
+        }
+
+        this._intervalData.push(start, new IntervalData(end, context, callback));
+        this._intervalSorted = false;
+    },
+
+    /**
+     * run all intervals with start <= now <= end
+     *
+     * @param now time
+     */
+    public runIntervals: func(finite now) {
+
+        if (this._intervalData === null) {
+            return;
+        }
+
+        if (this._intervalSorted !== true) {
+            this._intervalData.keySort();
+            this._intervalSorted = true;
+        }
+
+        var data = this._intervalData;
+        var id = data.length;
+        var item = new Pairs.Pair();
+        var start, end, context, callback, value, last;
+
+        while (id--) {
+
+            // fetch pair key and value
+
+            data.getTo(id, item);
+
+            start = item.key;
+
+            // start lies in future, all further intervals will as well
+
+            if (start > now) {
+                return;
+            }
+
+            end = item.value.end;
+            context = item.value.context;
+            callback = item.value.callback;
+
+            // calculate progress towards end
+
+            if (end <= now) {
+
+                value = 1.0;
+                last = true;
+                data.remove(id);
+                this._intervalSorted = false;
+
+                if (data.length === 0) {
+                    this._intervalData = null;
+                }
+
+            } else {
+
+                last = false;
+                value = (now - start) / (end -start);
+            }
+
+            // set value
+
+            if (typeof callback === 'string') {
+                context[callback] = value;
+            } else {
+                callback.call(context, value, last);
+            }
+        }
+    },
+};

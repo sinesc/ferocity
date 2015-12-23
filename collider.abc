@@ -1,11 +1,10 @@
 {
     "depend": "config.inc",
     "files": [
-        "collider/main.adria"
+        "ferocity/collider/main.adria"
     ],
-    "outFile": "../www/collider.js",
-    "paths": [ "./collider/", "./shared/", "../../outsourcedlib/", "../../astdlib/" ],
-    "extension": ".adria",
+    "outFile": "./bin/collider.js",
+    "paths": [ "./ferocity/collider/", "./ferocity/shared/", "../outsourcedlib/", "../astdlib/" ],
     "platform": "web",
-    "headerFile": "../license-header"
+    "headerFile": "./license-header"
 }

@@ -1,0 +1,48 @@
+/*
+ * tq2d JavaScript Sidescroller Engine
+ * Copyright (C) 2013 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Shot = require('../shot');
+var deg2rad = require('ferocity/view/geometry').deg2rad;
+
+/**
+ * Shot
+ *
+ * baseclass for shot type entities
+ */
+module ShotSine = proto (Shot) { };
+
+ShotSine::sineWidth = 20;
+ShotSine::sineOffsetT = 0;
+ShotSine::sineFactor = 10;
+
+ShotSine::updatePosition = func() {
+
+    if (this.isDead) {
+        return;
+    }
+
+    this.polarOffset(this.startX, this.startY, this.angle, this.age * this.velocity);
+
+    // offset by sine
+
+    var normal = (this.angle + 90) * deg2rad;
+    var offset = Math.sin(this.age * this.sineFactor + this.sineOffsetT) * this.sineWidth;
+
+    this.x += Math.cos(normal) * offset;
+    this.y += Math.sin(normal) * offset;
+
+};

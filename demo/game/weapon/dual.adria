@@ -1,0 +1,76 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Weapon = require('../weapon');
+var Projectile = require('../projectile');
+
+/**
+ * WeaponDual
+ *
+ * boring dual fire weapon
+ */
+module WeaponDual = proto (Weapon) {
+
+    public interval: 0.15,
+    public sound: 'sound/pew.ogg',
+
+    /**
+     * projectile constructor
+     */
+    public ProjectileA: Projectile,
+    public ProjectileB: Projectile,
+
+    /**
+     * mark as dualfire weapon so that owning entities can supply appropriate offsets
+     */
+    public mountType: Weapon::MOUNT_DUAL,
+
+    /**
+     * projectile spawn offsets
+     */
+    public offsetX: [ 0, -20 ],
+    public offsetY: [ 0, 20 ],
+
+    /**
+     * automatically switched between mountpoints
+     * if set to -1, both mountpoints will be used simultaneously (doubling the damage)
+     */
+    public currentMount: 0,
+
+    public doFire: func(finite angle, finite distance) {
+
+        assert(this.offsetX instanceof Array);
+        assert(this.offsetY instanceof Array);
+
+        var x = this.owner.x - application.level.x;
+        var y = this.owner.y - application.level.y;
+
+        if (this.currentMount === 0 || this.currentMount === -1) {
+            this.owner.spawn(this.ProjectileA, [ x + this.offsetX[0], y + this.offsetY[0], angle, this.damage, this.silenceShot]);
+        }
+
+        if (this.currentMount === 1 || this.currentMount === -1) {
+            this.owner.spawn(this.ProjectileB, [ x + this.offsetX[1], y + this.offsetY[1], angle, this.damage, this.silenceShot]);
+        }
+
+        if (this.currentMount >= 0) {
+            this.currentMount = 1 - this.currentMount;
+        }
+
+        return true;
+    },
+};

@@ -1,0 +1,131 @@
+/*
+ * tq2d JavaScript Sidescroller Engine
+ * Copyright (C) 2013 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Glow = require('./glow');
+var deg2rad = require('../../shared/geometry').deg2rad;
+
+/**
+ * Renders the sprite as well as a glow effect image
+ *
+ * @param sprite id
+ */
+module Exhaust = proto (Glow) {
+    constructor: func(sprite) {
+
+        Glow.call(this, sprite);
+
+        if (this.exhaustColor !== null) {
+            this.setExhaustColor(this.exhaustColor);
+        }
+    }
+};
+
+/**
+ * rendering composite effect
+ */
+Exhaust::composite = 'COPY';
+
+/**
+ * default glow color
+ */
+Exhaust::glowColor = 'white';
+Exhaust::glowScale = 1.0;
+Exhaust::glowAlpha = 0.2;
+
+/**
+ * exhaust frames/second
+ */
+Exhaust::exhaustFPS = 30;
+
+/**
+ * exhaust effect strength
+ */
+Exhaust::exhaustIntensity = 0.5;
+
+/**
+ * default exhaust color. use setExhaustColor() to change or modify in prototype before construction
+ */
+Exhaust::exhaustColor = 'white';
+
+/**
+ * exhaust flame offset
+ */
+Exhaust::exhaustOffset = -40;
+
+/**
+ * exhaust flame offset angle
+ */
+Exhaust::exhaustOffsetAngle = 0;
+
+/**
+ * exhaust effect strength
+ */
+Exhaust::exhaustScale = 1;
+
+/**
+ * changes exhaust color by loading a different exhaust texture
+ */
+Exhaust::setExhaustColor = func(colorName) {
+
+    this.exhaustColor = colorName;
+    this.exhaust = application.loader.sprite('/res/effect/exhaust_' + this.exhaustColor + '_128x64x8.jpg');
+};
+
+/**
+ * draws the sprite
+ *
+ * @param x
+ * @param y
+ */
+Exhaust::draw = func(x, y) {
+
+    if (this.active !== true || this.sprite.frames === null) {
+        return;
+    }
+
+    var ctx = application.vctx;
+
+    // calculate total exhaust offset
+
+    var offset = this.exhaustOffset;
+    var angle = this.angle + this.exhaustOffsetAngle;
+    var rad = angle * deg2rad;
+    var cosrad = Math.cos(rad);
+    var sinrad = Math.sin(rad);
+
+    var exhaustOffsetX = cosrad * (offset + 10);
+    var exhaustOffsetY = sinrad * (offset + 10);
+    var glowOffsetX = cosrad * offset;
+    var glowOffsetY = sinrad * offset;
+
+    // exhaust
+
+    var frameId = Math.round(application.frameTime * this.exhaustFPS) % application.loader.getExtra(this.exhaust).numFrames;     //!todo CACHE this
+    var alpha = this.exhaustIntensity * Math.rand(0.5, 1);
+    var size = this.exhaustScale * this.exhaustIntensity * 2;
+    ctx[0].drawSprite(this.exhaust, frameId, x + this.offsetX + exhaustOffsetX, y + this.offsetY + exhaustOffsetY, this.CMP_BLEND, alpha, angle, size, size, this.ORG_RIGHT_CENTER);
+
+    // base sprite
+
+    ctx[1].drawSprite(this.sprite, this.forceFrame !== -1 ? Math.round(this.forceFrame) : this.getFrameId(), x + this.offsetX, y + this.offsetY, this.composite, this.alpha, this.angle, this.scaleX, this.scaleY);
+
+    // glow
+
+    alpha = this.glowAlpha *  this.exhaustIntensity * Math.rand(0.5, 1);
+    size = this.glowScale * this.exhaustIntensity * 2;
+    ctx[2].drawSprite(this.glowSprite, 0, x + this.offsetX + glowOffsetX, y + this.offsetY + glowOffsetY, this.CMP_BLEND, alpha, angle, size);
+};
