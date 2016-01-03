@@ -5,5 +5,7 @@
     "outFile": "./www/view.js",
     "paths": [ "../", "../../outsourcedlib/", "../../radiantlib/", "../../astdlib/" ],
     "platform": "web",
-    "headerFile": "../license-header"
+    "headerFile": "../license-header",
+    "map": true,
+    "assert": true
 }

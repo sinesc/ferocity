@@ -16,8 +16,8 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 var Hostile = require('../hostile');
-var RendererGlow = require('ferocity/view/renderer/glow');
-var RendererExplode = require('ferocity/view/renderer/explode');
+var RendererGlow = require('../renderer/glow');
+var RendererExplode = require('../renderer/explode');
 var geometry = require('ferocity/shared/geometry');
 var ip = require('ferocity/view/interpolation');
 var deg2rad = geometry.deg2rad;

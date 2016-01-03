@@ -15,10 +15,11 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-var deg2rad = require('../../shared/geometry').deg2rad;
-var Glow = require('./glow');
-var ip = require('../interpolation');
+var deg2rad = require('ferocity/shared/geometry').deg2rad;
+var ip = require('ferocity/view/interpolation');
 var Color = require('radiant/color');
+var Glow = require('./glow');
+var emitterExplode = require('../emitter/explode');
 
 /**
  * Renders the sprite multiple times moving outward from a common center. The effect will only play
@@ -193,6 +194,19 @@ module Explode = proto (Glow) {
                 this.glowScale * maxGlow
                 //this.glowScale * maxGlow
                 // this.origin !todo
+            );
+
+        }
+
+        // add particle effect
+
+        if (this.scaleX >= 1) {
+            application.scene.addEmitter(
+                application.radiant.BLENDMODE.LIGHTEN,
+                emitterExplode.getInstance(),
+                application.frameTime - this.expT,
+                x | 0,
+                y | 0
             );
         }
 

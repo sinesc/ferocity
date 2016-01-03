@@ -23,12 +23,8 @@ var Series = require('ferocity/shared/series');
 var Asteroid = require('./hostile/asteroid');
 var Player = require('./player');
 
-//!TODO particle testing
-
-var Particles = require('radiant/renderer/particles');
-var Emitter = require('radiant/emitter');
-var TextureRamp = require('radiant/texture/ramp');
 var TextureFile = require('radiant/texture/file');
+var Images = require('radiant/renderer/images');
 
 module GameLevel = proto (Level) {
 
@@ -58,55 +54,21 @@ module GameLevel = proto (Level) {
             collider: new Series(delta),
             tests: new Series(delta),
         };
-
+this.images = new Images(application.radiant);
+this.image = new TextureFile(application.radiant, 'background/backdrop_blue.jpg');
     },
 
     public populate: func() {
 
         for (var i = 0; i < 2000; i++) {
-            this.addEntity(Asteroid, [ 600 + Math.randInt(0, 5000), 25 + Math.randInt(0, 1030), Math.rand(0.1, 1.0) ]);
+            this.addEntity(Asteroid, [ 900 + Math.randInt(0, 5000), 25 + Math.randInt(0, 1030), Math.rand(0.1, 1.0) ]);
         }
         for (var i = 0; i < 200; i++) {
-            this.addEntity(Asteroid, [ 600 + Math.randInt(0, 5000), 25 + Math.randInt(0, 1030), Math.rand(1.0, 1.5) ]);
+            this.addEntity(Asteroid, [ 900 + Math.randInt(0, 5000), 25 + Math.randInt(0, 1030), Math.rand(1.0, 1.5) ]);
         }
 
         this.player = this.addEntity(Player, [ 200, 32 ]);
         this.player.addBounds(20, 20);
-
-//!TODO particle testing
-
-this.particles = null;
-
-var texture = new TextureFile(application.radiant, 'sprite/glow/sparkles_64x64x1.png');
-
-texture.once('load', this, func() {
-
-    this.particles = new Particles(application.radiant);
-
-    var blendMode = application.radiant.BLENDMODE.LIGHTEN;
-    var ramp = new TextureRamp(application.radiant, [ Color.WHITE, Color.ORANGE, Color.rgba(255,255,255,0) ]);
-    var emitter = new Emitter(this.particles, texture, ramp);
-
-    emitter.createParticles(80, {
-        startTime: [ application.frameTime + 2.0, application.frameTime + 2.2 ],
-        timeToLive: [ 0.05, 0.5 ],
-        startSize: 16.0,
-        endSize: 128.0,
-        originX: 650.0,
-        originY: 350.0,
-        velocity: 500.0,
-        acceleration: -800,
-        angle: [ 0.0, 2 * Math.PI ],
-        rotation: [ 0.0, 2 * Math.PI ],
-        color: [ Color.WHITE, /*Color.rgba(255, 200, 200, 255), Color.rgba(255, 220, 210, 180) */ ],
-    });
-
-    this.particles.add(blendMode, emitter, 0, 0);
-    //this.particles.texture = emitter.texture;
-    //this.particles.ramp = emitter.ramp;
-});
-
-//!TODO end particle testing
 
     },
 
@@ -121,14 +83,28 @@ texture.once('load', this, func() {
         Level->frame();
 
         application.radiant.clear();
+if (this.image.ready) {
+    this.pos = (this.pos || 0) +0.3;
+    this.images.add(
+        application.radiant.BLENDMODE.COPY,
+        this.image,
+
+        this.pos,
+        0,
+        application.virtualWidth * 1000 / application.virtualHeight,
+        1000,
+
+        0,
+        0,
+        application.virtualWidth,
+        application.virtualHeight,
+        0,
+        Color.rgb(255, 200, 200)
+    );
+    this.images.draw();
+}
         application.scene.draw();
 
-//!TODO particle testing
-
-if (this.particles !== null) {
-    this.particles.shader.uNow.value = application.frameTime;
-    this.particles.draw();
-}
         // debug output
 
         var scene = application.scene;
@@ -150,8 +126,8 @@ if (this.particles !== null) {
             var colorMain = rawMain.max > rawCollider.max && rawMain.max > 13 ? Color.RED : (rawMain.max > 12 ? Color.ORANGE : Color.GREEN);
 
             text.write(bm, this.font, 'dims\t\t\t: ' + application.virtualWidth + 'x' + application.virtualHeight, 20, 20, Color.GREEN, 0);
-            text.write(bm, this.font, 'gl-draws\t\t: ' + scene.sprites.debugDrawCount, 20, 40, Color.GREEN, 0);
-            text.write(bm, this.font, 'sprites\t\t: ' + scene.debugDrawCount, 20, 60, Color.GREEN, 0);
+            text.write(bm, this.font, 'gl-draws\t\t: ' + application.radiant.debugGLDrawCount, 20, 40, Color.GREEN, 0);
+            text.write(bm, this.font, 'sprites\t\t: ' + scene.sprites.debugItemDrawCount, 20, 60, Color.GREEN, 0);
             text.write(bm, this.font, 'entities\t\t: ' + this.entities.length, 20, 80, Color.GREEN, 0);
             text.write(bm, this.font, 'c.tests\t\t:\t$0\t< $1\t< $2'.format(tests.min, tests.avg, tests.max), 20, 100, Color.GREEN, 0);
             text.write(bm, this.font, 'FPS\t\t\t:\t$0\t> $1 \t> $2'.format(fps.max, fps.avg, fps.min), 20, 120, fps.avg >= 59 ? Color.GREEN : Color.ORANGE, 0);
@@ -162,7 +138,7 @@ if (this.particles !== null) {
             text.draw();
         }
 
-        scene.sprites.debugDrawCount = 0;
-        scene.debugDrawCount = 0;
+        application.radiant.debugGLDrawCount = 0;
+        scene.sprites.debugItemDrawCount = 0;
     }
 };

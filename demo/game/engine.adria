@@ -24,9 +24,9 @@ module GameEngine = proto (Ferocity) {
     public keyState: null,
     public buttonState: null,
 
-    public constructor: func(object host, string colliderURL) {
+    public constructor: func(object host, string colliderURL, object? debug = null) {
 
-        parent->constructor(host, colliderURL);
+        parent->constructor(host, colliderURL, debug);
 
         this.keyState = this.keyboard.keyState;
         this.buttonState = this.mouseButton.buttonState;
@@ -45,9 +45,11 @@ module GameEngine = proto (Ferocity) {
         // first button press to aquire fullscreen, afterwards forward to player
 
         this.fullscreen.on('fullscreen', this, func(active) {
-            this.mouseButton.once('mousedown', this, func(button) {
-                this.fullscreen.request(this.radiant.canvas);
-            });
+            if (active === false) {
+                this.mouseButton.once('mousedown', this, func(button) {
+                    this.fullscreen.request(this.radiant.canvas);
+                });
+            }
         });
 
         this.mouseButton.once('mousedown', this, func(button) {

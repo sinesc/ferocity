@@ -15,8 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-var RendererGlow = require('ferocity/view/renderer/glow');
-var RendererExplode = require('ferocity/view/renderer/explode');
+var RendererGlow = require('./renderer/glow');
+var RendererExplode = require('./renderer/explode');
 var Configurable = require('./configurable');
 var EntityAngular = require('ferocity/view/entity/angular');
 

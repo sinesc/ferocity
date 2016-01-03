@@ -18,7 +18,7 @@
 var Entity = require('ferocity/view/entity');
 var Noisy = require('ferocity/view/entity/noisy');
 var Renderer = require('ferocity/view/renderer');
-var RendererExplode = require('ferocity/view/renderer/explode');
+var RendererExplode = require('./renderer/explode');
 
 /**
  * Configurable

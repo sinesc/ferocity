@@ -76,8 +76,8 @@ module Ferocity = proto (Component) mixin (Listenable, Timeframe) {
     /**
      * actual viewport
      */
-    protected viewportWidth: 1920, //1024,
-    protected viewportHeight: 1080, //576,
+    protected viewportWidth: 1920,
+    protected viewportHeight: 1080,
     protected viewportStretch: false,
     protected viewportFullscreen: false,
     protected viewportSmoothing: false,
@@ -105,12 +105,13 @@ module Ferocity = proto (Component) mixin (Listenable, Timeframe) {
      *
      * @param object host,
      * @param string colliderURL
+     * @param object if specified, object to receive references to canvas and gl, triggers use of WebGLDebugUtils if loaded
      */
-    public constructor: func(object host, string colliderURL) {
+    public constructor: func(object host, string colliderURL, object? debug = null) {
 
         // radiant
 
-        this.radiant = new Radiant(this.viewportWidth, this.viewportHeight);
+        this.radiant = new Radiant(this.viewportWidth, this.viewportHeight, false, false, null, debug);
         host.appendChild(this.radiant.canvas);
         this.scene = new Scene(this.radiant);
         this.sprites = new Repository(this.radiant);

@@ -50,7 +50,7 @@ var compile = func(file) {
     console.log('[server] monitoring ' + file);
 
     var child = cp.execFile(
-        'ngadria',
+        'adria',
         [ '-c', path.basename(file), '--monitor', '--poll' ],
         { cwd: path.dirname(file) }
     );

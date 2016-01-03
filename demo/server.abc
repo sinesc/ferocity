@@ -6,5 +6,6 @@
     "platform": "node",
     "headerFile": "../license-header",
     "shellwrap": true,
-    "assert": true
+    "assert": true,
+    "map": true
 }

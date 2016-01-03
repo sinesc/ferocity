@@ -15,8 +15,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-var deg2rad = require('../../shared/geometry').deg2rad;
-var Renderer = require('../renderer');
+var deg2rad = require('ferocity/shared/geometry').deg2rad;
+var Renderer = require('ferocity/view/renderer');
 var Color = require('radiant/color');
 
 module Glow = proto (Renderer) {
