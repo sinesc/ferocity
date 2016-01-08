@@ -24,18 +24,13 @@ module Glow = proto (Renderer) {
     public layer: 0,
     public composite: 'LIGHTEN',
 
-    public glowColorR: 1.0,
-    public glowColorG: 1.0,
-    public glowColorB: 1.0,
-    public glowAlpha: 1.0,
-
-    public glowScale: 1,
-    public glowAngle: NaN,
-
     public glowSpriteName: 'sprite/glow/basic_256x256x1.png',
     public glowSprite: null,
-
-    public glowLayer: 2,
+    public glowLayer: 4,
+    public glowComposite: 'LIGHTEN',
+    public glowColor: Color.WHITE,
+    public glowScale: 1.0,
+    public glowAngle: NaN,
 
     /**
      * constructor
@@ -62,44 +57,41 @@ module Glow = proto (Renderer) {
 
         assert(this.layer < 10);
 
-        if (this.active !== true) {
+        if (this.active !== true || this.sprite.frames === null || this.glowSprite.frames === null) {
             return;
         }
 
         var factor = this.fadeFactor;
-        var blendMode = application.radiant.BLENDMODE[this.composite];
 
-        if (this.glowAlpha > 0) {
+        if (Color.getAlpha(this.glowColor) > 0) {
 
             application.scene.addSprite(
                 this.glowLayer,
-                blendMode,
+                application.radiant.BLENDMODE[this.glowComposite],
                 this.glowSprite,
                 0,
-                (x + this.offsetX) | 0,
-                (y + this.offsetY) | 0,
-                Color.rgba1(this.glowColorR, this.glowColorG, this.glowColorB, this.glowAlpha * factor * factor * factor),
+                parseInt(x + this.offsetX),
+                parseInt(y + this.offsetY),
+                Color.setAlpha(this.glowColor, Color.getAlpha(this.glowColor) * factor * factor * factor),
                 isNaN(this.glowAngle) ? this.angle * deg2rad : this.glowAngle * deg2rad,
                 this.glowScale,
                 this.glowScale
-                // this.origin !todo
             );
         }
 
-        if (this.alpha > 0) {
+        if (Color.getAlpha(this.color) > 0) {
 
             application.scene.addSprite(
                 this.layer,
-                blendMode,
+                application.radiant.BLENDMODE[this.composite],
                 this.sprite,
                 this.getFrameId(),
-                (x + this.offsetX) | 0,
-                (y + this.offsetY) | 0,
-                Color.rgba1(this.colorR, this.colorG, this.colorB, this.alpha * factor),
+                parseInt(x + this.offsetX),
+                parseInt(y + this.offsetY),
+                Color.setAlpha(this.color, Color.getAlpha(this.color) * factor * factor),
                 this.angle * deg2rad,
                 this.scaleX,
                 this.scaleY
-                // this.origin !todo
             );
         }
     },

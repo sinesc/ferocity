@@ -23,19 +23,14 @@ var Color = require('radiant/color');
  */
 module Renderer = proto {
 
+    public active       : true,
+
     public spriteName   : null,
     public sprite       : null,
-
-    public active       : true,
     public FPS          : 25,
-
-    public layer        : 1,
+    public layer        : 3,
     public composite    : 'COPY',
-
-    public colorR       : 1.0,
-    public colorG       : 1.0,
-    public colorB       : 1.0,
-    public alpha        : 1.0,
+    public color        : Color.WHITE,
 
     public angle        : 0.0,
     public scaleX       : 1.0,
@@ -140,7 +135,7 @@ module Renderer = proto {
 
         assert(this.layer < 10);
 
-        if (this.active !== true) {
+        if (this.active !== true || this.sprite.frames === null) {
             return;
         }
 
@@ -153,7 +148,7 @@ module Renderer = proto {
             this.getFrameId(),
             parseInt(x + this.offsetX),
             parseInt(y + this.offsetY),
-            Color.rgba1(this.colorR, this.colorG, this.colorB, this.alpha * factor * factor),
+            Color.setAlpha(this.color, Color.getAlpha(this.color) * factor * factor),
             this.angle * deg2rad,
             this.scaleX,
             this.scaleY

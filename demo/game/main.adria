@@ -18,11 +18,12 @@
 require('astd/prototype').extend();
 
 global debug = require('ferocity/shared/debug');
+debug.data = { };
 window.debug = debug;
 
 // initialize global engine-view
 
 var GameEngine = require('./engine');
 
-application(GameEngine, document.getElementById('ferocityHost'), '/collider.js'); //, debug
+application(GameEngine, document.getElementById('ferocityHost'), '/collider.js'); //, debug.data
 application.start();

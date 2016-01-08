@@ -17,6 +17,7 @@
  */
 var Entity = require('ferocity/view/entity');
 var Noisy = require('ferocity/view/entity/noisy');
+var Measured = require('ferocity/view/entity/measured');
 var Renderer = require('ferocity/view/renderer');
 var RendererExplode = require('./renderer/explode');
 
@@ -25,7 +26,7 @@ var RendererExplode = require('./renderer/explode');
  *
  * fairly configurable baseclass for shots and enemies
  */
-module Configurable = proto (Entity) mixin (Noisy) {
+module Configurable = proto (Entity) mixin (Noisy, Measured) {
 
     public angle: 180.0,
 

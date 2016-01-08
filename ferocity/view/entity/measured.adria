@@ -17,15 +17,13 @@
  */
 module Measured = proto {
 
-    public velocityX: 0,
-    public velocityY: 0,
-    public accelerationX: 0,
-    public accelerationY: 0,
+    public velocityX: 0.0,
+    public velocityY: 0.0,
+    public accelerationX: 0.0,
+    public accelerationY: 0.0,
 
-    private previousX: 0,
-    private previousY: 0,
-    private previousVelocityX: 0,
-    private previousVelocityY: 0,
+    private previousX: 0.0,
+    private previousY: 0.0,
 
     /**
      * calculate renderer frame based on entity acceleration on the y-axis
@@ -37,51 +35,57 @@ module Measured = proto {
      * @param finite velocityTreshold velocity below which a rotation towards the center frame is triggered
      * @param finite delta frame delta
      */
-    public motionFrameY: func(object renderer, string axis = 'y', finite accelerationFactor = 1.0, finite decelerationFactor = 0.5, finite velocityTreshold = 15.0, finite delta = application.frameDelta) {
+    public motionFrame: func(object renderer, string axis = 'y', finite accelerationFactor = 0.7, finite decelerationFactor = 0.2, finite velocityTreshold = 15.0, finite accelerationLimit = 100.0, finite delta = application.frameDelta) {
 
         var frames          = renderer.sprite.frames.length;
         var centerFrame     = Math.round(frames / 2);
         var selectedFrame   = renderer.forceFrame;
         var acceleration    = axis === 'y' ? this.accelerationY : this.accelerationX;
-        var velocity        = Math.abs(axis === 'y' ? this.velocityY : this.velocityX)
+        var velocity        = Math.abs(axis === 'y' ? this.velocityY : this.velocityX);
+
+        acceleration = acceleration > 0 ? Math.min(accelerationLimit, acceleration) : Math.max(-accelerationLimit, acceleration);
 
         // rotate away from center frame on vertical acceleration
 
-        selectedFrame += acceleration * accelerationFactor * 0.01 * delta;
+        selectedFrame += acceleration * accelerationFactor * delta;
 
         // generally rotate towards center frame
 
-        if (Math.round(selectedFrame) !== centerFrame && velocity < velocityTreshold) {
-            selectedFrame += (centerFrame - selectedFrame).sgn * decelerationFactor * delta;
-        }
+        //if (Math.round(selectedFrame) !== centerFrame && velocity < velocityTreshold) {
+            selectedFrame += (centerFrame - selectedFrame).sgn * accelerationLimit * decelerationFactor * delta;
+        //}
 
         renderer.forceFrame = Math.min(frames -1, Math.max(0, selectedFrame));
     },
 
     /**
-     * measure entity velocity and accelleration
+     * measure entity velocity and acceleration
      *
      * @param finite delta frame delta
+     * @return boolean false if delta was 0
      */
     public measure: func(finite delta = application.frameDelta) {
 
-        // calculate new velocity and acceleration, don't apply velocity yet
+        if (delta === 0) {
+            return false;
+        }
 
-        var velocityX = (this.x - this.previousX) / delta;
-        var velocityY = (this.y - this.previousY) / delta;
-        this.accelerationX = (this.velocityX - this.previousVelocityX) / delta;
-        this.accelerationY = (this.velocityY - this.previousVelocityY) / delta;
+        // calculate new velocity and acceleration, average with previous frame
 
-        // save old position and velocity
+        var velocityX = (this.velocityX + (this.x - this.previousX) / delta) / 2;
+        var velocityY = (this.velocityY + (this.y - this.previousY) / delta) / 2;
 
-        this.previousX = this.x + 0.0;
-        this.previousY = this.y + 0.0;
-        this.previousVelocityX = this.velocityX + 0.0;
-        this.previousVelocityY = this.velocityY + 0.0;
-
-        // store computed velocity
+        this.accelerationX = (this.accelerationX + velocityX - this.velocityX) / 2;
+        this.accelerationY = (this.accelerationY + velocityY - this.velocityY) / 2;
 
         this.velocityX = velocityX;
         this.velocityY = velocityY;
+
+        // save old position
+
+        this.previousX = this.x + 0.0;
+        this.previousY = this.y + 0.0;
+
+        return true;
     },
 };

@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+var Random = require('astd/random');
 var deg2rad = require('ferocity/shared/geometry').deg2rad;
 var ip = require('ferocity/view/interpolation');
 var Color = require('radiant/color');
@@ -30,13 +31,12 @@ var emitterExplode = require('../emitter/explode');
 module Explode = proto (Glow) {
 
     public spriteName: 'sprite/explosion/default_128x128x40.jpg',
-    public alpha: 0.75,
+    public color: Color.alpha1(0.75),
 
-    public glowAlpha: 0.6,
-    public glowColorR: 1.0,
-    public glowColorG: 0.8,
-    public glowColorB: 0.6,
+    public glowColor: Color.rgba1(1.0, 0.8, 0.6, 0.6),
     public glowScale: 5,
+
+    public expEmitter: emitterExplode,
 
     /**
      * time until explosion glow reaches maximum (percent of animation duration)
@@ -76,11 +76,10 @@ module Explode = proto (Glow) {
     /**
      * internal
      */
+    protected entropy: null,
     protected active: false,
-    protected expT: 0,          //!todo use astd/random for repeatable "random" instead
-    protected expR: null,
-    protected expA: null,
-    protected expD: null,
+    protected expT0: 0,
+    protected numExplosions: 0,
 
     /**
      * triggers the explosion effect
@@ -89,31 +88,14 @@ module Explode = proto (Glow) {
      */
     public start: func() {
 
+        this.entropy    = new Random(Math.random());
         this.active     = true;
-        this.expT       = application.frameTime;
-        this.expR       = [];
-        this.expA       = [];
-        this.expD       = [];
-
-        // always create one centered explosion
-
-        this.expR.push(0.0);
-        this.expD.push(0.0);
-        this.expA.push(0.0);
-
-        // add some explosions around it
-
-        var numExplosions = Math.headDist(this.expMaxEffects - this.expMinEffects) + this.expMinEffects;
-
-        for (var i = 0; i < numExplosions -1; i++) {
-            this.expR.push(Math.random() * this.expMaxRadius);
-            this.expD.push(Math.random() * 360);
-            this.expA.push(Math.random() * 360);
-        }
+        this.expT0       = application.frameTime;
+        this.numExplosions = Math.headDist(this.expMaxEffects - this.expMinEffects) + this.expMinEffects;
 
         // return total amount of time required to play through the effect
 
-        return this.continuous ? 99999999.0 : (numExplosions * this.expInterval) + (this.sprite.numFrames / this.FPS);
+        return this.continuous ? 99999999.0 : (this.numExplosions * this.expInterval) + (this.sprite.numFrames / this.FPS);
     },
 
     /**
@@ -131,17 +113,18 @@ module Explode = proto (Glow) {
         var offset, frameId;
         var rendered = 0;
         var maxGlow = 0.0;
-        var frameTime = application.frameTime;
-        var blendMode = application.radiant.BLENDMODE[this.composite];
+        var ent = this.entropy;
 
         // render explosion sprites
 
-        for (var i = 0, len = this.expR.length; i < len; ++i) {
+        ent.reset();
+
+        for (var i = 0; i < this.numExplosions; ++i) {
 
             // calculate frame
 
-            offset = this.expT + i * this.expInterval;
-            frameId = Math.round((frameTime - offset + this.offsetT) * this.FPS);
+            offset = this.expT0 + i * this.expInterval;
+            frameId = Math.round((application.frameTime - offset + this.offsetT) * this.FPS);
 
             // draw all explosions that aren't yet finished
 
@@ -157,17 +140,17 @@ module Explode = proto (Glow) {
 
                 maxGlow = Math.max(maxGlow, ip.peak(framePerc, this.glowGain / 100, this.glowDecay / 100));
 
-                this.polarOffset(this.expD[i], this.expR[i]);
+                this.polarOffset(ent.float(0, 360), i === 0 ? 0.0 : ent.float(0, this.expMaxRadius));
 
                 application.scene.addSprite(
                     (i+1) % 2 * 2,
-                    blendMode,
+                    application.radiant.BLENDMODE[this.composite],
                     this.sprite,
                     frameId,
                     (x + this.offsetX) | 0,
                     (y + this.offsetY) | 0,
-                    Color.rgba1(this.colorR, this.colorG, this.colorB, (i === 0 ? Math.sqrt(this.alpha) : this.alpha)),
-                    this.expA[i] * deg2rad,
+                    Color.setAlpha1(this.color, (i === 0 ? Math.sqrt(Color.getAlpha1(this.color)) : Color.getAlpha1(this.color))),
+                    ent.float(0, 360) * deg2rad,
                     this.scaleX,
                     this.scaleY
                 );
@@ -178,45 +161,48 @@ module Explode = proto (Glow) {
 
         // render glow at the maximum brightness established for any of the sprites rendered
 
-        if (rendered > 0 && this.glowSprite !== null && this.glowAlpha > 0.0) {
+        var glowAlpha = Color.getAlpha1(this.glowColor);
 
-            var color = Color.fromTemperature(15000 - (maxGlow * maxGlow * maxGlow * maxGlow * 11500), this.glowAlpha * maxGlow * 255);
+        if (this.expMaxEffects === 0 || (rendered > 0 && this.glowSprite !== null && glowAlpha > 0.0)) {
+
+            var color = Color.fromTemperature(15000 - (maxGlow * maxGlow * maxGlow * maxGlow * 11500), glowAlpha * maxGlow * 255);
 
             application.scene.addSprite(
                 this.glowLayer,
-                blendMode,
+                application.radiant.BLENDMODE[this.glowComposite],
                 this.glowSprite,
                 0,
-                (x + this.offsetX) | 0,
-                (y + this.offsetY) | 0,
+                parseInt(x + this.offsetX),
+                parseInt(y + this.offsetY),
                 color.value,
                 0,
                 this.glowScale * maxGlow
-                //this.glowScale * maxGlow
-                // this.origin !todo
             );
 
         }
 
         // add particle effect
 
+        var emitter = this.expEmitter.getInstance();
+
         if (this.scaleX >= 1) {
+            ent.reset();
             application.scene.addEmitter(
                 application.radiant.BLENDMODE.LIGHTEN,
-                emitterExplode.getInstance(),
-                application.frameTime - this.expT,
-                x | 0,
-                y | 0
+                emitter,
+                application.frameTime - this.expT0,
+                parseInt(x),
+                parseInt(y)
             );
         }
 
         // if none were rendered, the animation is done
 
-        if (rendered === 0) {
+        if (rendered === 0 && application.frameTime - this.expT0 > emitter.duration) {
             if (this.continuous !== true) {
                 this.active = false;
             } else {
-                this.expT = frameTime;
+                this.expT0 = application.frameTime;
             }
         }
     },

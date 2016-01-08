@@ -1,0 +1,124 @@
+/*
+ * ferocity Sidescroller Engine
+ * Copyright (C) 2014 Dennis Möhlmann <mail@dennismoehlmann.de>
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+var Random = require('astd/random');
+var deg2rad = require('ferocity/shared/geometry').deg2rad;
+var ip = require('ferocity/view/interpolation');
+var Color = require('radiant/color');
+var Glow = require('./glow');
+var emitterExplode = require('../emitter/scratch');
+
+/**
+ * Renders the sprite multiple times moving outward from a common center. The effect will only play
+ * once and has to be triggered using start()
+ *
+ * @param sprite id
+ */
+module Scratch = proto (Glow) {
+
+    public glowColor: Color.rgba1(1.0, 0.8, 0.6, 0.4),
+    public glowScale: 5,
+
+    public expEmitter: emitterExplode,
+    public expMaxRadius: 20.0,
+    public glowGain: 35,
+    public glowDecay: 35,
+
+    public continuous: false,
+
+    /**
+     * internal
+     */
+    protected entropy: null,
+    protected active: false,
+    protected expT0: 0,
+
+    /**
+     * triggers the mini-explosion effect
+     *
+     * @return time the effect will take
+     */
+    public start: func() {
+
+        this.entropy    = new Random(Math.random());
+        this.active     = true;
+        this.expT0      = application.frameTime;
+
+        // return total amount of time required to play through the effect
+
+        return this.continuous ? 99999999.0 : this.expEmitter.getInstance().duration;
+    },
+
+    /**
+     * draws the effect
+     *
+     * @param x
+     * @param y
+     */
+    public draw: func(finite x, finite y) {
+
+        if (this.active !== true) {
+            return;
+        }
+
+        var emitter = this.expEmitter.getInstance();
+        var maxGlow = ip.peak((application.frameTime - this.expT0) / emitter.duration, this.glowGain / 100, this.glowDecay / 100);
+        var ent = this.entropy;
+        ent.reset();
+
+        // render glow effect
+
+        var glowAlpha = Color.getAlpha1(this.glowColor);
+
+        if (this.glowSprite !== null && glowAlpha > 0.0) {
+
+            var color = Color.fromTemperature(15000 - (maxGlow * maxGlow * maxGlow * maxGlow * 11500), glowAlpha * maxGlow * 255);
+
+            application.scene.addSprite(
+                this.glowLayer,
+                application.radiant.BLENDMODE[this.glowComposite],
+                this.glowSprite,
+                0,
+                parseInt(x + this.offsetX),
+                parseInt(y + this.offsetY),
+                color.value,
+                0,
+                this.glowScale * maxGlow
+            );
+        }
+
+        // add particle effect
+
+        application.scene.addEmitter(
+            application.radiant.BLENDMODE.LIGHTEN,
+            emitter,
+            application.frameTime - this.expT0,
+            parseInt(x + ent.float(-this.expMaxRadius, this.expMaxRadius)),
+            parseInt(y + ent.float(-this.expMaxRadius, this.expMaxRadius))
+        );
+
+        // check if done
+
+        if (application.frameTime - this.expT0 > emitter.duration) {
+            if (this.continuous !== true) {
+                this.active = false;
+            } else {
+                this.expT0 = application.frameTime;
+            }
+        }
+    },
+};

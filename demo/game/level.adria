@@ -63,28 +63,32 @@ this.image = new TextureFile(application.radiant, 'background/backdrop_blue.jpg'
         for (var i = 0; i < 2000; i++) {
             this.addEntity(Asteroid, [ 900 + Math.randInt(0, 5000), 25 + Math.randInt(0, 1030), Math.rand(0.1, 1.0) ]);
         }
+
         for (var i = 0; i < 200; i++) {
             this.addEntity(Asteroid, [ 900 + Math.randInt(0, 5000), 25 + Math.randInt(0, 1030), Math.rand(1.0, 1.5) ]);
         }
 
-        this.player = this.addEntity(Player, [ 200, 32 ]);
+        this.player = this.addEntity(Player, [ 700, 332 ]);
         this.player.addBounds(20, 20);
 
     },
 
     public frame: func() {
 
-        this.x += application.frameDelta * 50;
+        this.x += application.frameDelta * 2;
 
-        if (application.buttonState[0]) {
-            this.player.fireWeapon();
-        }
+
+    var shiftY = 40;
+    var offsetY = this.player.y / application.virtualHeight * shiftY;
+    this.y = offsetY;
+
 
         Level->frame();
 
         application.radiant.clear();
 if (this.image.ready) {
     this.pos = (this.pos || 0) +0.3;
+
     this.images.add(
         application.radiant.BLENDMODE.COPY,
         this.image,

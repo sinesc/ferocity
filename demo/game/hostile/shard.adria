@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+var Color = require('radiant/color');
 var Hostile = require('../hostile');
 var RendererGlow = require('../renderer/glow');
 var RendererExplode = require('../renderer/explode');
@@ -32,8 +33,7 @@ var deg2rad = geometry.deg2rad;
 module Shard = proto (Hostile) {
 
     public BaseRenderer: proto (RendererGlow) {
-        glowColorG: 0.8,
-        glowColorB: 0.6,
+        glowColor: Color.rgb1(1.0, 0.8, 0.6),
     },
 
     public baseSprites: [ 'sprite/asteroid/type1_64x64x60.png',  'sprite/asteroid/type2_64x64x60.png',  'sprite/asteroid/type3_64x64x60.png' ],

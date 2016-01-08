@@ -17,6 +17,7 @@
  */
 var Configurable = require('./configurable');
 var Weapon = require('./weapon/basic');
+var RendererExhaust = require('./renderer/exhaust');
 
 /**
  * Configurable
@@ -30,9 +31,10 @@ module Player = proto (Configurable) {
     protected spawnFaction: Player::faction,
     protected spawnCollisionFactions: Player::collisionFactions,
 
-    protected baseSprites: [ 'sprite/hostile/mine_green_64x64x15.png' ],
+    protected BaseRenderer: RendererExhaust,
+    protected baseSprites: [ 'sprite/player/speedy_98x72x30.png' ],
 
-    public Weapon              : Weapon,
+    public Weapon              : proto (Weapon) { interval: 0.1, damage: 80 },
     public primary             : null,
     public secondary           : null,
     public shield              : null,
@@ -54,6 +56,18 @@ module Player = proto (Configurable) {
         }
 
         this[slotName] = weapon;
+    },
+
+    public think: func(finite delta) {
+
+        Configurable->think(delta);
+
+        this.measure();
+        this.motionFrame(this.baseRenderer);
+
+        if (application.buttonState[0]) {
+            this.fireWeapon();
+        }
     },
 
     protected fireWeapon: func(delta) {

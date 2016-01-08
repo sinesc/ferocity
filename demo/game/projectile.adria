@@ -16,9 +16,10 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 var RendererGlow = require('./renderer/glow');
-var RendererExplode = require('./renderer/explode');
+var RendererScratch = require('./renderer/scratch');
 var Configurable = require('./configurable');
 var EntityAngular = require('ferocity/view/entity/angular');
+var emitterScratch = require('./emitter/scratch');
 
 /**
  * Projectile
@@ -30,14 +31,15 @@ module Projectile = proto (Configurable) mixin (EntityAngular) {
     public BaseRenderer: RendererGlow,
     public baseSprites: [ 'sprite/projectile/bolt_blue_60x36x1.jpg' ],
 
-    public DeathRenderer: proto (RendererExplode) {
+    public DeathRenderer: proto (RendererScratch) {
         glowScale: 0.5,
-        expMaxRadius: 0.0,
-        expMinEffects: 1,
-        expMaxEffects: 2
+        expEmitter: emitterScratch,
+        expMaxRadius: 20.0,
+        expMinEffects: 0,
+        expMaxEffects: 1
     },
 
-    public deathSprites: null,
+    public deathSprites: [ 'sprite/explosion/default_128x128x40.jpg' ],
     public deathSounds: null,
 
     public hitpoints: 10.0,
