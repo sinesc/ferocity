@@ -273,7 +273,7 @@ Pairs::_sort = func(criteria, other, fn) {
 
     // sort by criteria (key or value)
 
-    if (fn === undefined) {
+    if (fn == undefined) {
 
         criteria.sort(func(a, b) {
             var relation = b - a;

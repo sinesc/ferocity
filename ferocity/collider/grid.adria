@@ -81,7 +81,7 @@ module Grid = proto {
 
         var bounds = entity.bounds;
 
-        if (bounds === null) {
+        if (bounds == null) {
             return;
         }
 

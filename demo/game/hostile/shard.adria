@@ -88,19 +88,19 @@ module Shard = proto (Hostile) {
 
     public collision: func(other) {
 
-        var damage = Math.max(0, this.hitpoints) * (other.faction !== 'friendly' ? 5 : 1);
+        var damage = Math.max(0, this.hitpoints) * (other.faction != 'friendly' ? 5 : 1);
         other.damage(damage, this);
     },
 
     public think: func(finite delta) {
 
-        if (Hostile->think(delta) !== true || this.isDead) {
+        if (Hostile->think(delta) != true || this.isDead) {
             return false;
         }
 
         // destroy shard once it is no longer visible
 
-        if (this.isVisible !== true) {
+        if (this.isVisible != true) {
             return this.destroy();
         }
 
@@ -109,7 +109,7 @@ module Shard = proto (Hostile) {
 
         // only become collidable after a few moments to prevent instant collision with remaining player projectiles
 
-        if (this.colliderId === 0 && this.age >= this.boundingDelay) {
+        if (this.colliderId == 0 && this.age >= this.boundingDelay) {
             this.addBounds(25 * this.scale, 25 * this.scale);
         }
 

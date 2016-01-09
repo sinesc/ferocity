@@ -25,10 +25,10 @@ export now = (func() {
 
     import performance;
 
-    if (typeof performance === 'object' && typeof performance.now === 'function') {
+    if (typeof performance == 'object' && typeof performance.now == 'function') {
 
         return func(offset) {
-            return performance.now() / 1000 - (offset === undefined ? 0 : offset);
+            return performance.now() / 1000 - (offset == undefined ? 0 : offset);
         };
 
     } else {
@@ -36,7 +36,7 @@ export now = (func() {
         debug('timing').log('fallback to Date()');
 
         return func(offset) {
-            return Date.now() / 1000 - (offset === undefined ? 0 : offset);
+            return Date.now() / 1000 - (offset == undefined ? 0 : offset);
         };
     }
 

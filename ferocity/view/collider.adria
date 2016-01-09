@@ -66,7 +66,7 @@ module Collider = proto (ColliderBase) {
         var entityA = this.entityByColliderId.get(collidableIdA);
         var entityB = this.entityByColliderId.get(collidableIdB);
 
-        if (typeof entityA === 'object' && typeof entityB === 'object') {
+        if (typeof entityA == 'object' && typeof entityB == 'object') {
             entityA.collision(entityB);
             entityB.collision(entityA);
         }

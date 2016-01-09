@@ -53,7 +53,7 @@ module Series = func(finite rate = 1) {
         maxValue = (value > maxValue ? value : maxValue);
         totalValue += value;
 
-        if (numValues === 0) {
+        if (numValues == 0) {
             avgValue = value;
         } else {
             avgValue = (numValues * avgValue + value) / (numValues + 1);
@@ -63,7 +63,7 @@ module Series = func(finite rate = 1) {
 
         numValues++;
 
-        return getFixed !== -2 ? this.get(getFixed) : null;
+        return getFixed != -2 ? this.get(getFixed) : null;
     };
 
     this.get = func(decimals = -1) {

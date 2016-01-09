@@ -42,7 +42,7 @@ module Noisy = proto {
      */
     protected alterSound: func(refDistance, rolloffFactor) {
 
-        if (this.speaker !== null) {
+        if (this.speaker != null) {
             this.speaker.setOpt(refDistance, rolloffFactor);
         }
     },
@@ -52,7 +52,7 @@ module Noisy = proto {
      */
     protected stopSound: func() {
 
-        if (this.speaker !== null) {
+        if (this.speaker != null) {
             this.speaker.destroy();
             this.speaker = null;
         }

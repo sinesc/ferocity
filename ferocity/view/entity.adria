@@ -49,7 +49,7 @@ module Entity = proto (Component) {
 
     public isDead: prop {
         get: func() {
-            return (this.timeOfDeath !== -1 || this.disposable);
+            return (this.timeOfDeath != -1 || this.disposable);
         },
         set: func(x) {
             throw new Exception('Cannot set isDead');
@@ -58,7 +58,7 @@ module Entity = proto (Component) {
 
     public isAlive: prop {
         get: func() {
-            return (this.timeOfDeath === -1);
+            return (this.timeOfDeath == -1);
         },
         set: func(x) {
             throw new Exception('Cannot set isAlive');
@@ -80,7 +80,7 @@ module Entity = proto (Component) {
         var collider = application.collider;
         var factions = application.level.factions;
 
-        if (this.colliderId === 0) {
+        if (this.colliderId == 0) {
 
             this.colliderId = uniqueId++;
 
@@ -100,7 +100,7 @@ module Entity = proto (Component) {
      */
     public updateCollider: func() {
 
-        if (this.colliderId > 0 && (this.testCollision === true || this.previousTestCollision !== this.testCollision)) {
+        if (this.colliderId > 0 && (this.testCollision == true || this.previousTestCollision != this.testCollision)) {
             application.collider.updateCollidable(this.colliderId, this.x, this.y, this.angle, this.testCollision ? 0 : 1);
             this.previousTestCollision = this.testCollision;
         }
@@ -115,7 +115,7 @@ module Entity = proto (Component) {
      */
     public spawn: func(func Type, Array constructArgs = [ ]) {
 
-        assert(Type === Entity || Type.prototype instanceof Entity, 'Type is not of Entity');
+        assert(Type == Entity || Type.prototype instanceof Entity, 'Type is not of Entity');
 
         var entity = Type.construct(constructArgs);
         entity.faction = this.spawnFaction;
@@ -157,7 +157,7 @@ module Entity = proto (Component) {
      * draw handler, override for functionality
      */
     public draw: func() {
-        return this.disposable === false;
+        return this.disposable == false;
     },
 
     /**

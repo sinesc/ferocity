@@ -44,7 +44,7 @@ module debug = func(feature) {
  */
 var toggle = func(features, status) {
 
-    if (features.length === 0) {
+    if (features.length == 0) {
         all = status;
         for (var name in options) {
             options[name] = -1;
@@ -82,11 +82,11 @@ export disable = func(...features) {
  */
 export test = func(feature) {
 
-    if (options[feature] === undefined) {
+    if (options[feature] == undefined) {
         options[feature] = -1;
     }
 
-    return options[feature] === -1 ? all : (options[feature] === 1);
+    return options[feature] == -1 ? all : (options[feature] == 1);
 };
 
 /**
@@ -126,7 +126,7 @@ export text = func(x, y, lines) {
     ctx.textAlign = ctx.TA_LEFT;
     ctx.alpha = 1;
 
-    if (lines instanceof Array !== true) {
+    if (lines instanceof Array != true) {
         lines = [ lines ];
     }
 
@@ -151,9 +151,9 @@ export ellipse = func(x, y, h, v, a, steps, color) {
 
     var ctx = application.highCtx;
 
-    color = (color === undefined ? 'rgb(200, 0, 0)' : color);
-    steps = (steps === undefined ? 8 : steps);
-    a = (a === undefined ? 0 : a * (Math.PI / 180));
+    color = (color == undefined ? 'rgb(200, 0, 0)' : color);
+    steps = (steps == undefined ? 8 : steps);
+    a = (a == undefined ? 0 : a * (Math.PI / 180));
 
     ctx.globalAlpha = 0.8;
     ctx.strokeStyle = color;
@@ -184,7 +184,7 @@ export line = func(ax, ay, bx, by, color) {
 
     var ctx = application.highCtx;
 
-    color = (color === undefined ? 'rgb(200, 0, 0)' : color);
+    color = (color == undefined ? 'rgb(200, 0, 0)' : color);
 
     ctx.alpha = 1;
     ctx.strokeStyle = color;
@@ -205,7 +205,7 @@ export rect = func(ax, ay, bx, by, color) {
 
     var ctx = application.highCtx;
 
-    color = (color === undefined ? 'rgb(200, 0, 0)' : color);
+    color = (color == undefined ? 'rgb(200, 0, 0)' : color);
 
     ctx.alpha = 0.3;
     ctx.strokeStyle = color;

@@ -154,7 +154,7 @@ export ellipsesIntersect = func(ax, ay, ah, av, aa, bx, by, bh, bv, ba, steps) {
 
     // basic ellipse, just do the test
 
-    if (aa === 0 && ba === 0) {
+    if (aa == 0 && ba == 0) {
         return basicEllipsesIntersect(ax, ay, ah, av, bx, by, bh, bv);
     }
 
@@ -163,7 +163,7 @@ export ellipsesIntersect = func(ax, ay, ah, av, aa, bx, by, bh, bv, ba, steps) {
     var ar = Math.max(ah, av);
     var br = Math.max(bh, bv);
 
-    if (circlesIntersect(ax, ay, ar, bx, by, br) === false) {
+    if (circlesIntersect(ax, ay, ar, bx, by, br) == false) {
         return false;
     }
 
@@ -178,7 +178,7 @@ export ellipsesIntersect = func(ax, ay, ah, av, aa, bx, by, bh, bv, ba, steps) {
 
     // neither case matches, we have to test the ellipse (slow!)
 
-    steps = (steps === undefined ? 8 : steps);
+    steps = (steps == undefined ? 8 : steps);
     aa *= deg2rad;
     ba *= deg2rad;
 
@@ -222,13 +222,13 @@ export quadrant = func(finite vX, finite vY) {
                  -90°
     */
 
-    if (angle === 0.0) {
+    if (angle == 0.0) {
 
         return 6;
 
     } else if (angle < 0) {
 
-        if (angle === -90.0) {
+        if (angle == -90.0) {
             return 7;
         } else if (angle > -90) {
             return 3;
@@ -238,7 +238,7 @@ export quadrant = func(finite vX, finite vY) {
 
     } else {
 
-        if (angle === 90.0) {
+        if (angle == 90.0) {
             return 5;
         } else if (angle < 90) {
             return 2;
@@ -268,7 +268,7 @@ export vectorOutbound = func(finite vX, finite vY, finite x, finite y, finite xM
 
     // unmoving outside of screen = outbound
 
-    if (vX === 0 && vY === 0) {
+    if (vX == 0 && vY == 0) {
         return x < -grace || y < -grace || x > xMax + grace || y > yMax + grace;
     }
 

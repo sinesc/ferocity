@@ -40,14 +40,14 @@ Dust::layer = 1;
  */
 Dust::draw = func(x, y) {
 
-    assert(typeof x === 'number');
-    assert(typeof y === 'number');
+    assert(typeof x == 'number');
+    assert(typeof y == 'number');
 
-    if (this.active !== true) {
+    if (this.active != true) {
         return;
     }
 
-    var frameId = (this.forceFrame !== -1 ? Math.round(this.forceFrame) : this.getFrameId());
+    var frameId = (this.forceFrame != -1 ? Math.round(this.forceFrame) : this.getFrameId());
 
     var factor = this.fadeFactor;
     var upscale = 1 + (1 - factor) * this.fadeScale;

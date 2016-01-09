@@ -49,9 +49,9 @@ module MouseButton = proto (Listenable) {
 
     public handleEvent: func(e) {
 
-        if (e.type === 'mousedown') {
+        if (e.type == 'mousedown') {
             this.mouseDown(e);
-        } else if (e.type === 'mouseup') {
+        } else if (e.type == 'mouseup') {
             this.mouseUp(e);
         }
     },
@@ -60,7 +60,7 @@ module MouseButton = proto (Listenable) {
         
         var buttonId = parseInt(e.button);
         
-        if (this.buttonState[buttonId] !== true) {
+        if (this.buttonState[buttonId] != true) {
             this.buttonState[buttonId] = true;
             this.execute('mousedown', buttonId, 'mousedown');
         }
@@ -70,7 +70,7 @@ module MouseButton = proto (Listenable) {
         
         var buttonId = parseInt(e.button);
         
-        if (this.buttonState[buttonId] === true) {
+        if (this.buttonState[buttonId] == true) {
             this.buttonState[buttonId] = false;
             this.execute('mouseup', buttonId, 'mouseup');
         }

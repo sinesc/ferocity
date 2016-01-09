@@ -45,7 +45,7 @@ module GameEngine = proto (Ferocity) {
         // first button press to aquire fullscreen, afterwards forward to player
 
         this.fullscreen.on('fullscreen', this, func(active) {
-            if (active === false) {
+            if (active == false) {
                 this.mouseButton.once('mousedown', this, func(button) {
                     this.fullscreen.request(this.radiant.canvas);
                 });

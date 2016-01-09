@@ -44,7 +44,7 @@ module Fullscreen = proto (Listenable) {
 
     public handleEvent: func(e) {
 
-        if (this.requestElement === null) {
+        if (this.requestElement == null) {
             return;
         }
 
@@ -69,7 +69,7 @@ module Fullscreen = proto (Listenable) {
      */
     public request: func(element) {
 
-        if (this.requestElement !== null) {
+        if (this.requestElement != null) {
             return false;
         }
 
@@ -78,7 +78,7 @@ module Fullscreen = proto (Listenable) {
                       element.mozRequestFullScreen ||
                       element.oRequestFullscreen;
 
-        if (typeof reqFull === 'function') {
+        if (typeof reqFull == 'function') {
 
             this.requestElement = element;
             reqFull.call(element);
@@ -104,7 +104,7 @@ module Fullscreen = proto (Listenable) {
                       document.mozCancelFullScreen ||
                       document.oExitFullscreen;
 
-        if (typeof endFull === 'function') {
+        if (typeof endFull == 'function') {
 
             endFull.call(document);
             return true;
@@ -123,11 +123,11 @@ module Fullscreen = proto (Listenable) {
      */
     public isActive: func()  {
 
-        return this.requestElement !== null && (
-                    document.fullscreenElement === this.requestElement ||
-                    document.webkitFullscreenElement === this.requestElement ||
-                    document.mozFullScreenElement === this.requestElement ||
-                    document.oFullScreenElement === this.requestElement
+        return this.requestElement != null && (
+                    document.fullscreenElement == this.requestElement ||
+                    document.webkitFullscreenElement == this.requestElement ||
+                    document.mozFullScreenElement == this.requestElement ||
+                    document.oFullScreenElement == this.requestElement
                 );
     },
 };

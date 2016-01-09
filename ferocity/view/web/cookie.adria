@@ -34,7 +34,7 @@ module Cookie = proto {
 
             pair = pair.split('=');
 
-            if (pair.length === 2) {
+            if (pair.length == 2) {
                 try {
                     this.cookieData[pair[0].trim()] = JSON.parse(decodeURIComponent(pair[1]).trim());
                 } catch (e) { }
@@ -47,7 +47,7 @@ module Cookie = proto {
         var expireDate = new Date();
         expireDate.setDate(expireDate.getDate() + expireDays);
 
-        document.cookie = key + "=" + encodeURIComponent(JSON.stringify(value)) + (expireDays === undefined ? '' : '; expires=' + expireDate.toUTCString());
+        document.cookie = key + "=" + encodeURIComponent(JSON.stringify(value)) + (expireDays == undefined ? '' : '; expires=' + expireDate.toUTCString());
         this.cookieData[key] = value;
     },
 

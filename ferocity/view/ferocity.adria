@@ -163,7 +163,7 @@ module Ferocity = proto (Component) mixin (Listenable, Timeframe) {
      */
     public start: func() {
 
-        if (this.active === true) {
+        if (this.active == true) {
             throw new Exception('Engine already running');
         }
 
@@ -221,7 +221,7 @@ module Ferocity = proto (Component) mixin (Listenable, Timeframe) {
      */
     protected engineFrame: func() {
 
-        if (this.active !== true) {
+        if (this.active != true) {
             return;
         }
 
@@ -244,7 +244,7 @@ module Ferocity = proto (Component) mixin (Listenable, Timeframe) {
 
         // trigger first time ready code
 
-        if (this.ready === false) {
+        if (this.ready == false) {
             this.ready = true;
             this.started();
         }
@@ -304,7 +304,7 @@ module Ferocity = proto (Component) mixin (Listenable, Timeframe) {
 
         // check for updated screen dimensions
 
-        if (screen.width !== this.screenWidth || screen.height !== this.screenHeight) {
+        if (screen.width != this.screenWidth || screen.height != this.screenHeight) {
 
             this.screenWidth = screen.width;
             this.screenHeight = screen.height;
@@ -328,21 +328,21 @@ module Ferocity = proto (Component) mixin (Listenable, Timeframe) {
             var height = Math.floor(width / ratio) + 'px';
             width += 'px';
 
-            if (style.width !== width) {
+            if (style.width != width) {
                 style.width = width;
             }
 
-            if (style.height !== height) {
+            if (style.height != height) {
                 style.height = height;
             }
 
         } else {
 
-            if (style.width !== '') {
+            if (style.width != '') {
                 style.width = '';
             }
 
-            if (style.height !== '') {
+            if (style.height != '') {
                 style.height = '';
             }
         }

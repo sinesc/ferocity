@@ -68,7 +68,7 @@ module Renderer = proto {
 
         var selectedSprite;
 
-        if (typeof this.spriteNames === 'string') {
+        if (typeof this.spriteNames == 'string') {
             selectedSprite = this.spriteNames;
         } else {
             assert(this.spriteNames instanceof Array);
@@ -76,7 +76,7 @@ module Renderer = proto {
         }
 
         this.sprite = application.sprites.load(selectedSprite);
-        assert(this.sprite !== null);
+        assert(this.sprite != null);
     },
 
     /**
@@ -84,7 +84,7 @@ module Renderer = proto {
      */
     public fadeFactor: prop {
         get: func() {
-            return (this.fadeEnd === -1 ? 1 : Math.max(0, (this.fadeEnd - application.frameTime) / this.fadeDuration));
+            return (this.fadeEnd == -1 ? 1 : Math.max(0, (this.fadeEnd - application.frameTime) / this.fadeDuration));
         }
     },
 
@@ -95,7 +95,7 @@ module Renderer = proto {
      */
     public fade: func(duration) {
 
-        if (this.fadeEnd !== -1) {
+        if (this.fadeEnd != -1) {
             return;
         }
 
@@ -121,7 +121,7 @@ module Renderer = proto {
      */
     public getFrameId: func() {
 
-        if (this.forceFrame === -1) {
+        if (this.forceFrame == -1) {
 
             var numFrames = this.sprite.numFrames;
             var frameId = Math.round((application.frameTime + this.offsetT) * this.FPS) * this.frameStep;
@@ -145,7 +145,7 @@ module Renderer = proto {
 
         assert(this.layer < 10);
 
-        if (this.active !== true || this.sprite.frames === null) {
+        if (this.active != true || this.sprite.frames == null) {
             return;
         }
 

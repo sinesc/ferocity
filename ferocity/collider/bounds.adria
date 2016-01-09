@@ -115,7 +115,7 @@ module Bounds = proto {
         this.ellipse    = [ new Ellipse(ellipseH, ellipseV, ellipseAngle, ellipseOffsetDistance, ellipseOffsetAngle, ellipseOcclusion) ];
         this.id         = uniqueId++;
 
-        if (ellipseH !== ellipseV || ellipseOffsetDistance !== 0) {
+        if (ellipseH != ellipseV || ellipseOffsetDistance != 0) {
             this.simple = false;
         }
     },
@@ -191,7 +191,7 @@ module Bounds = proto {
      */
     occludes: func(x, y, r) {
 
-        if (this.occlusion === 0) {
+        if (this.occlusion == 0) {
             return 0;
         }
 
@@ -243,7 +243,7 @@ module Bounds = proto {
 
         this.ellipse.push( new Ellipse(ellipseH, ellipseV, ellipseAngle, ellipseOffsetDistance, ellipseOffsetAngle, ellipseOcclusion) );
 
-        if (ellipseH !== ellipseV || ellipseOffsetDistance !== 0) {
+        if (ellipseH != ellipseV || ellipseOffsetDistance != 0) {
             this.simple = false;
         }
 
@@ -271,22 +271,22 @@ module Bounds = proto {
 
         // update changed fields
 
-        if (ellipseH !== undefined) {
+        if (ellipseH != undefined) {
             ellipse.h = ellipseH;
         }
-        if (ellipseV !== undefined) {
+        if (ellipseV != undefined) {
             ellipse.v = ellipseV;
         }
-        if (ellipseAngle !== undefined) {
+        if (ellipseAngle != undefined) {
             ellipse.angle = ellipseAngle;
         }
-        if (ellipseOffsetDistance !== undefined) {
+        if (ellipseOffsetDistance != undefined) {
             ellipse.offsetDistance = ellipseOffsetDistance;
         }
-        if (ellipseOffsetAngle !== undefined) {
+        if (ellipseOffsetAngle != undefined) {
             ellipse.offsetAngle = ellipseOffsetAngle;
         }
-        if (ellipseOcclusion !== undefined) {
+        if (ellipseOcclusion != undefined) {
             ellipse.occlusion = ellipseOcclusion;
         }
 
@@ -382,7 +382,7 @@ module Bounds = proto {
      */
     protected updateBoundsFromEllipse: func(eH, eV, eA, eX, eY) {
 
-        if (eH === eV) {
+        if (eH == eV) {
 
             this.outerX1 = Math.min(this.outerX1, eX - eH);
             this.outerY1 = Math.min(this.outerY1, eY - eH);

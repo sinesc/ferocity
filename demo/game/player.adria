@@ -47,11 +47,11 @@ module Player = proto (Configurable) {
 
     public setWeapon: func(weapon) {
 
-        var slotName = (weapon.slot === weapon.SLOT_PRIMARY ? 'primary' : (weapon.slot === weapon.SLOT_SECONDARY ? 'secondary' : 'shield'));
+        var slotName = (weapon.slot == weapon.SLOT_PRIMARY ? 'primary' : (weapon.slot == weapon.SLOT_SECONDARY ? 'secondary' : 'shield'));
 
         // remove previous weapon in slot and add new one
 
-        if (this[slotName] !== null) {
+        if (this[slotName] != null) {
             this[slotName].destroy();
         }
 

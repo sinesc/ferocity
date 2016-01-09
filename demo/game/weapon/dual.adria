@@ -59,11 +59,11 @@ module WeaponDual = proto (Weapon) {
         var x = this.owner.x - application.level.x;
         var y = this.owner.y - application.level.y;
 
-        if (this.currentMount === 0 || this.currentMount === -1) {
+        if (this.currentMount == 0 || this.currentMount == -1) {
             this.owner.spawn(this.ProjectileA, [ x + this.offsetX[0], y + this.offsetY[0], angle, this.damage, this.silenceShot]);
         }
 
-        if (this.currentMount === 1 || this.currentMount === -1) {
+        if (this.currentMount == 1 || this.currentMount == -1) {
             this.owner.spawn(this.ProjectileB, [ x + this.offsetX[1], y + this.offsetY[1], angle, this.damage, this.silenceShot]);
         }
 

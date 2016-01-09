@@ -29,7 +29,7 @@ module ArrayMap = proto {
 
         var id = this.map.get(key);
 
-        if (id !== undefined) {
+        if (id != undefined) {
 
             // remove from array
 
@@ -37,7 +37,7 @@ module ArrayMap = proto {
 
             // Array::remove may have shifted the last entry into the previous position of the deleted element
 
-            if (movedFromId !== id) {
+            if (movedFromId != id) {
 
                 // last array element moved to id, get key for that element
 
@@ -62,7 +62,7 @@ module ArrayMap = proto {
 
         var id = this.map.get(key);
 
-        if (id !== undefined) {
+        if (id != undefined) {
             return this.array[id];
         } else {
             return undefined;

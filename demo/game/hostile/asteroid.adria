@@ -59,7 +59,7 @@ module Asteroid = proto (Hostile) {
         this.deathRenderer.scaleY = scale;
         this.deathRenderer.expMaxRadius = 45 * scale;
 
-        if (this.DustRenderer !== null && this.dustSprites !== null && scale > 0.5 && application.options.gfxDust) {
+        if (this.DustRenderer != null && this.dustSprites != null && scale > 0.5 && application.options.gfxDust) {
             this.deathRenderer = new this.DeathRenderer(this.dustSprites.random());
             this.dustRenderer.alpha = 0.3;
             this.dustRenderer.layer = Math.randInt(0,1) * 2;
@@ -83,11 +83,11 @@ module Asteroid = proto (Hostile) {
 
     public draw: func() {
 
-        if (Hostile->draw() !== true) {
+        if (Hostile->draw() != true) {
             return false;
         }
 
-        if (this.dustRenderer !== null) {
+        if (this.dustRenderer != null) {
             this.dustRenderer.draw((this.x - application.level.x) | 0, (this.y - application.level.y) | 0);
         }
 
@@ -98,11 +98,11 @@ module Asteroid = proto (Hostile) {
 
         Hostile->death();
 
-        if (this.dustRenderer !== null) {
+        if (this.dustRenderer != null) {
             this.dustRenderer.fade(1);
         }
 
-        if (this.Shard !== null && this.baseRenderer.scaleX > this.shardThreshold) {
+        if (this.Shard != null && this.baseRenderer.scaleX > this.shardThreshold) {
 
             var num = Math.ceil(this.baseRenderer.scaleX * Math.rand(this.minShards, this.maxShards));
             var x = this.x - application.level.x;
@@ -116,7 +116,7 @@ module Asteroid = proto (Hostile) {
 
     public think: func(finite delta) {
 
-        if (Hostile->think(delta) !== true) {
+        if (Hostile->think(delta) != true) {
             return false;
         }
 

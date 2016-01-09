@@ -57,7 +57,7 @@ Mirror::glowDecay = 30;
  */
 Mirror::fade = func(start, duration) {
 
-    if (duration === undefined) {
+    if (duration == undefined) {
         duration = start;
         start = application.frameTime;
     }
@@ -74,7 +74,7 @@ Mirror::fade = func(start, duration) {
  */
 Mirror::draw = func(x, y) {
 
-    if (this.active !== true) {
+    if (this.active != true) {
         return;
     }
 
@@ -85,7 +85,7 @@ Mirror::draw = func(x, y) {
 
     // check if fade has started
 
-    if (this.fadeStart !== -1 && this.fadeStart < application.frameTime) {
+    if (this.fadeStart != -1 && this.fadeStart < application.frameTime) {
 
         var framePerc = Math.min(1, (application.frameTime - this.fadeStart) / this.fadeDuration);
 
@@ -99,7 +99,7 @@ Mirror::draw = func(x, y) {
         ctx[0].drawSprite(this.glowSprite, 0, x + this.offsetX, y + this.offsetY, this.CMP_BLEND, value * this.glowAlpha, this.angle, this.glowScale * value);
     }
 
-    if (this.fadeStart === -1) {
+    if (this.fadeStart == -1) {
         ctx[0].drawSprite(this.glowSprite, 0, x + this.offsetX, y + this.offsetY, this.CMP_BLEND, this.glowAlpha * 0.5, this.angle, this.glowScale * 0.1);
     }
 

@@ -94,7 +94,7 @@ module Audio = proto  {
 
         var stream = this.currentMusicStream;
 
-        if (stream !== null && stream.playing) {
+        if (stream != null && stream.playing) {
             stream.fadeOut(crossFadeDuration, true);
         }
 
@@ -110,7 +110,7 @@ module Audio = proto  {
 
         var stream = this.currentMusicStream;
 
-        if (stream !== null && stream.playing) {
+        if (stream != null && stream.playing) {
             if (fadeoutDuration > 0) {
                 stream.fadeOut(fadeoutDuration);
             } else {
@@ -138,7 +138,7 @@ module Audio = proto  {
 
         // create new buffer descriptor
 
-        if (typeof this.buffers[src] === 'undefined') {
+        if (typeof this.buffers[src] == 'undefined') {
             this.buffers[src] = new AudioBuffer(this, src);
         }
 

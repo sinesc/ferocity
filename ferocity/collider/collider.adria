@@ -74,14 +74,14 @@ module Collider = proto (ColliderBase) {
 
         var collidable = this.collidables.get(collidableId);
 
-        if (collidable === undefined) {
+        if (collidable == undefined) {
             return;
         }
 
         collidable.x = x;
         collidable.y = y;
         collidable.angle = angle;
-        collidable.suspended = suspended === 1;
+        collidable.suspended = suspended == 1;
     },
 
     /**
@@ -130,7 +130,7 @@ module Collider = proto (ColliderBase) {
         //for (var collidable of collidables) {
         for (var id = 0, len = collidables.length; id < len; ++id) {
             var collidable = collidables[id];
-            if (collidable.suspended === false) {
+            if (collidable.suspended == false) {
                 grid.add(collidable);
             }
         }
@@ -149,7 +149,7 @@ module Collider = proto (ColliderBase) {
 
         // invoke collisions method on view
 
-        if (collisions !== null) {
+        if (collisions != null) {
 
             var keys = Object.keys(collisions);
 
@@ -177,7 +177,7 @@ module Collider = proto (ColliderBase) {
             application.writeBuffer(writeBuffer.data);      // sets send buffer (!todo need to work on naming)
 
             application.reportUsage(usage);                 // include usage from previous frame in response
-            application.reportTests(application.grid !== null ? application.grid.tests : 0);
+            application.reportTests(application.grid != null ? application.grid.tests : 0);
 
             application.readBuffer(readBuffer.data);        // executes the received buffer
 

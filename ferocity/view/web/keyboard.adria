@@ -49,9 +49,9 @@ module Keyboard = proto (Listenable) {
 
     public handleEvent: func(e) {
 
-        if (e.type === 'keydown') {
+        if (e.type == 'keydown') {
             this.keyDown(e);
-        } else if (e.type === 'keyup') {
+        } else if (e.type == 'keyup') {
             this.keyUp(e);
         }
     },
@@ -60,7 +60,7 @@ module Keyboard = proto (Listenable) {
 
         var keyCode = parseInt(e.keyCode);
 
-        if (this.keyState[keyCode] !== true) {
+        if (this.keyState[keyCode] != true) {
             this.keyState[keyCode] = true;
             this.execute('keydown', keyCode, 'keydown');
         }
@@ -70,7 +70,7 @@ module Keyboard = proto (Listenable) {
 
         var keyCode = parseInt(e.keyCode);
 
-        if (this.keyState[keyCode] === true) {
+        if (this.keyState[keyCode] == true) {
             this.keyState[keyCode] = false;
             this.execute('keyup', keyCode, 'keyup');
         }

@@ -62,14 +62,14 @@ module Projectile = proto (Configurable) mixin (EntityAngular) {
         this.angle = angle;
         this.baseRenderer.angle = this.angle;
 
-        if (forceSilence !== true) {
+        if (forceSilence != true) {
             //this.playSound('sound/laser_hum.ogg');   //!todo fix both
         }
     },
 
     public think: func(finite delta) {
 
-        if (Configurable->think(delta) !== true || this.isDead) {
+        if (Configurable->think(delta) != true || this.isDead) {
             return false;
         }
 
@@ -78,7 +78,7 @@ module Projectile = proto (Configurable) mixin (EntityAngular) {
         this.baseRenderer.angle = this.angle;
 
 //!todo
-        if (this.allowOffscreen === false && this.isOffscreen || this.age > this.timeToLive) {
+        if (this.allowOffscreen == false && this.isOffscreen || this.age > this.timeToLive) {
             this.destroy();
         }
 

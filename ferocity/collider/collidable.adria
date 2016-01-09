@@ -65,7 +65,7 @@ module Collidable = proto {
      */
     public addBounds: func(ellipseH, ellipseV, ellipseAngle, ellipseOffsetDistance, ellipseOffsetAngle, ellipseOcclusion) {
 
-        if (this.bounds === null) {
+        if (this.bounds == null) {
             this.bounds = new Bounds(this, ellipseH, ellipseV, ellipseAngle, ellipseOffsetDistance, ellipseOffsetAngle, ellipseOcclusion);
             return 0;
         } else {

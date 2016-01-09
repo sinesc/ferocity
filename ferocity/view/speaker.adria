@@ -37,7 +37,7 @@ module Speaker = proto {
 
     public play: func() {
 
-        if (this.source !== null && this.source.buffer === null && this.buffer.data !== null) {
+        if (this.source != null && this.source.buffer == null && this.buffer.data != null) {
             this.source.buffer = this.buffer.data;
         }
 
@@ -48,22 +48,22 @@ module Speaker = proto {
 
         var buffer = this.buffer;
 
-        if (buffer.status === 'loading' || buffer.status === 'decoding') {
+        if (buffer.status == 'loading' || buffer.status == 'decoding') {
             this.buffer.once('ready', this, this.play);
-        } else if (buffer.status === 'ready') {
+        } else if (buffer.status == 'ready') {
             this.play();
         }
     },
 
     /**
-     * select loop start/end positions or disable looping when start===end
+     * select loop start/end positions or disable looping when start==end
      *
      * @param finite start
      * @param finite end
      */
     public setLoop: func(finite start = 0, finite end = 0) {
 
-        if (start !== end) {
+        if (start != end) {
             this.source.loop = true;
             this.source.loopStart = start;
             this.source.loopEnd = end;
@@ -83,7 +83,7 @@ module Speaker = proto {
 
         var source = this.audio.ctx.createBufferSource();
 
-        if (buffer !== null) {
+        if (buffer != null) {
             source.buffer = buffer;
         }
 

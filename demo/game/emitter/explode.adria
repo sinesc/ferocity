@@ -26,7 +26,7 @@ var instance = null;
 
 export getInstance = func() {
 
-    if (instance === null) {
+    if (instance == null) {
 
         instance = new Emitter(application.scene.particles, 'sprite/glow/basic_64x64x1.png', [
             Color.rgba(200, 200, 255, 255),

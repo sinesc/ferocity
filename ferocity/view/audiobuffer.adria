@@ -30,7 +30,7 @@ module Buffer = proto (Listenable) {
 
         this.audio = audio;
 
-        if (file !== null) {
+        if (file != null) {
             this.load(file);
         }
     },

@@ -43,12 +43,12 @@ module Exhaust = proto (Glow) {
 
         this.exhaustSpriteName = exhaustSpriteName;
         this.exhaustSprite = application.sprites.load(this.exhaustSpriteName);
-        assert(this.exhaustSprite !== null);
+        assert(this.exhaustSprite != null);
     },
 
     public draw: func(x, y) {
 
-        if (this.active !== true || this.sprite.frames === null || this.glowSprite.frames === null || this.exhaustSprite.frames === null) {
+        if (this.active != true || this.sprite.frames == null || this.glowSprite.frames == null || this.exhaustSprite.frames == null) {
             return;
         }
 

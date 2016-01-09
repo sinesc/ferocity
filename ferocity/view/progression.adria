@@ -65,7 +65,7 @@ module Progression = proto {
 
         var point = this.data.tailKey;
 
-        if (point === undefined || (min !== null && point > min)) {
+        if (point == undefined || (min != null && point > min)) {
             return -1;
         }
 
@@ -98,7 +98,7 @@ module Progression = proto {
      */
     protected checkSorted: func() {
 
-        if (this.sorted !== true) {
+        if (this.sorted != true) {
             this.data.keySort();
             this.sorted = true;
         }

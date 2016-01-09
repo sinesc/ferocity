@@ -44,7 +44,7 @@ module Glow = proto (Renderer) {
 
         this.glowSpriteName = glowSpriteName;
         this.glowSprite = application.sprites.load(this.glowSpriteName);
-        assert(this.glowSprite !== null);
+        assert(this.glowSprite != null);
     },
 
     /**
@@ -57,7 +57,7 @@ module Glow = proto (Renderer) {
 
         assert(this.layer < 10);
 
-        if (this.active !== true || this.sprite.frames === null || this.glowSprite.frames === null) {
+        if (this.active != true || this.sprite.frames == null || this.glowSprite.frames == null) {
             return;
         }
 

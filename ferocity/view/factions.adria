@@ -42,7 +42,7 @@ module Factions = proto {
 
     public getByName: func(string name) {
 
-        assert(typeof this.nameToId[name] !== 'undefined');
+        assert(typeof this.nameToId[name] != 'undefined');
         return this.nameToId[name];
     },
 

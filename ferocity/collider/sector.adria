@@ -61,7 +61,7 @@ module Sector = proto {
      */
     public add: func(object entity) {
 
-        assert(this.factions[entity.factionId] !== undefined);
+        assert(this.factions[entity.factionId] != undefined);
 
         this.factions[entity.factionId].push(entity);
         this.numColliders++;
@@ -84,7 +84,7 @@ module Sector = proto {
 
             // if a single faction contains all collidables, there can be no collision
 
-            if (collidableId === this.numColliders) {
+            if (collidableId == this.numColliders) {
                 return false;
             }
 
@@ -112,8 +112,8 @@ module Sector = proto {
 
         for (var i = 0, len = subject.collisionFactionIds.length; i < len; i++) {
 
-            assert(this.factions[subject.collisionFactionIds[i]] !== undefined, 'faction not defined');
-            assert(subject.collisionFactionIds[i] !== subject.factionId, 'collision within faction not permitted');
+            assert(this.factions[subject.collisionFactionIds[i]] != undefined, 'faction not defined');
+            assert(subject.collisionFactionIds[i] != subject.factionId, 'collision within faction not permitted');
 
             collidables = this.factions[subject.collisionFactionIds[i]];
             collidableId = collidables.length;
@@ -126,7 +126,7 @@ module Sector = proto {
                 this.tests++;
                 collidableBounds = collidables[collidableId].bounds;
 
-                if (collidableBounds !== null && subjectBounds !== null && collidableBounds !== subjectBounds) {
+                if (collidableBounds != null && subjectBounds != null && collidableBounds != subjectBounds) {
 
                     // get array of intersecting ellipse-ids or null
 
@@ -136,7 +136,7 @@ module Sector = proto {
 
                         hash = this.hashPair(collidableBounds, subjectBounds);
 
-                        if (collisionMap[hash] === undefined) {
+                        if (collisionMap[hash] == undefined) {
 
                             collisionMap[hash] = [ subject, collidables[collidableId], intersection[0], intersection[1] ];
                             count++;

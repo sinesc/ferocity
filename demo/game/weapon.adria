@@ -109,7 +109,7 @@ module Weapon = proto {
         this.nextShot = application.frameTime;
         this.slot = slotOverride;
 
-        if (this.sound !== null) {
+        if (this.sound != null) {
             //application.loader.audio(this.sound);
         }
     },
@@ -127,7 +127,7 @@ module Weapon = proto {
      */
     public isReady: prop {
         get: func() {
-            return this.owner !== null && application.frameTime > this.nextShot;
+            return this.owner != null && application.frameTime > this.nextShot;
         }
     },
 
@@ -137,7 +137,7 @@ module Weapon = proto {
      */
     public isCoolingDown: prop {
         get: func() {
-            return this.whichShot === -1 && application.frameTime < this.nextShot;
+            return this.whichShot == -1 && application.frameTime < this.nextShot;
         }
     },
 
@@ -160,14 +160,14 @@ module Weapon = proto {
         }
 
 
-        if (this.sound !== null) {
+        if (this.sound != null) {
             new Directional(application.audio, this.sound);
             //application.audio.playDirectional(this.sound, this.soundPriority, this.owner.x, this.owner.y, this.owner.velocityX, this.owner.velocityY);
         }
 
         // for doFire() implementation convenience, calulate absolute firing position (single mounts only)
 
-        if (this.mountType === this.MOUNT_SINGLE) {
+        if (this.mountType == this.MOUNT_SINGLE) {
 
             var startX = this.owner.x - application.level.x + this.offsetX + Math.cos(angle * deg2rad) * distance;
             var startY = this.owner.y - application.level.y + this.offsetY + Math.sin(angle * deg2rad) * distance;
@@ -180,7 +180,7 @@ module Weapon = proto {
 
         // perform the actual firing. if doFire returns something other than true, enter cooldown
 
-        if (enterInterval !== true) {
+        if (enterInterval != true) {
 
             this.whichShot = -1;
             this.nextShot = now + this.cooldown;

@@ -38,7 +38,7 @@ module Component = proto mixin (Interval) {
      * component destructor, extend as needed
      */
     protected destructor: func() {
-        if (this.timeline !== null) {
+        if (this.timeline != null) {
             this.interruptTimedEvents();
             this.timeline.destroy();
         }
@@ -73,7 +73,7 @@ module Component = proto mixin (Interval) {
      */
     public destroy: func(...args) {
 
-        if (this.disposable === false) {
+        if (this.disposable == false) {
             this.disposable = true;
             this.destructor.apply(this, args);
         }
@@ -89,7 +89,7 @@ module Component = proto mixin (Interval) {
      */
     public at: func(finite absoluteTime, [ [ args = [ ] ], object context = this ], func callback) {
 
-        if (this.timeline === null) {
+        if (this.timeline == null) {
             this.timeline = new Progression();
         }
 
@@ -116,7 +116,7 @@ module Component = proto mixin (Interval) {
      */
     public runTimedEvents: func(finite now = this.now) {
 
-        if (this.timeline === null || this.disposable) {
+        if (this.timeline == null || this.disposable) {
             return;
         }
 
@@ -124,7 +124,7 @@ module Component = proto mixin (Interval) {
 
         this._timelineInterrupted = false;
 
-        while (this.timeline.peek(now) !== -1) {
+        while (this.timeline.peek(now) != -1) {
 
             // fetch event from timeline and call it
 
@@ -145,7 +145,7 @@ module Component = proto mixin (Interval) {
      */
     public clearTimedEvents: func() {
 
-        if (this.timeline === null) {
+        if (this.timeline == null) {
             return;
         }
 
@@ -159,7 +159,7 @@ module Component = proto mixin (Interval) {
      */
     public interruptTimedEvents: func() {
 
-        if (this.timeline === null) {
+        if (this.timeline == null) {
             return;
         }
 

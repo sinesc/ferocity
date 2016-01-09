@@ -48,7 +48,7 @@ module Interval = proto {
      */
     public interval: func(finite start, finite end, [ object context = this ], callback) {
 
-        if (this._intervalData === null) {
+        if (this._intervalData == null) {
             this._intervalData = new Pairs();
         }
 
@@ -63,11 +63,11 @@ module Interval = proto {
      */
     public runIntervals: func(finite now) {
 
-        if (this._intervalData === null) {
+        if (this._intervalData == null) {
             return;
         }
 
-        if (this._intervalSorted !== true) {
+        if (this._intervalSorted != true) {
             this._intervalData.keySort();
             this._intervalSorted = true;
         }
@@ -104,7 +104,7 @@ module Interval = proto {
                 data.remove(id);
                 this._intervalSorted = false;
 
-                if (data.length === 0) {
+                if (data.length == 0) {
                     this._intervalData = null;
                 }
 
@@ -116,7 +116,7 @@ module Interval = proto {
 
             // set value
 
-            if (typeof callback === 'string') {
+            if (typeof callback == 'string') {
                 context[callback] = value;
             } else {
                 callback.call(context, value, last);

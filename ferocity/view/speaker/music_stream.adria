@@ -33,7 +33,7 @@ module MusicStream = proto {
     public playing: prop {
         get: func() {
             var audio = this.htmlAudio;
-            return (audio.paused === false && audio.ended === false);
+            return (audio.paused == false && audio.ended == false);
         }
     },
 
@@ -67,7 +67,7 @@ module MusicStream = proto {
 
         var interval = setInterval(func() {
 
-            if (that.htmlAudio === null) {
+            if (that.htmlAudio == null) {
                 clearInterval(interval);
                 return;
             }

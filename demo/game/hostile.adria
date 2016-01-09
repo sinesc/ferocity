@@ -51,11 +51,11 @@ module Hostile = proto (Configurable) {
 
     public setWeapon: func(weapon) {
 
-        var slotName = (weapon.slot === weapon.SLOT_PRIMARY ? 'primary' : (weapon.slot === weapon.SLOT_SECONDARY ? 'secondary' : 'shield'));
+        var slotName = (weapon.slot == weapon.SLOT_PRIMARY ? 'primary' : (weapon.slot == weapon.SLOT_SECONDARY ? 'secondary' : 'shield'));
 
         // remove previous weapon in slot and add new one
 
-        if (this[slotName] !== null) {
+        if (this[slotName] != null) {
             this[slotName].destroy();
         }
 
@@ -63,11 +63,11 @@ module Hostile = proto (Configurable) {
 
         // evening the scales
 
-        if (weapon.enemyScaling === weapon.ES_COOLDOWN || weapon.enemyScaling === weapon.ES_BOTH) {
+        if (weapon.enemyScaling == weapon.ES_COOLDOWN || weapon.enemyScaling == weapon.ES_BOTH) {
             weapon.cooldown *= this.weaponScaling;
         }
 
-        if (weapon.enemyScaling === weapon.ES_INTERVAL || weapon.enemyScaling === weapon.ES_BOTH) {
+        if (weapon.enemyScaling == weapon.ES_INTERVAL || weapon.enemyScaling == weapon.ES_BOTH) {
             weapon.interval *= this.weaponScaling;
         }
     },
@@ -78,12 +78,12 @@ module Hostile = proto (Configurable) {
 
         // spawn a random powerup
 
-        if (this.drops !== null) {
+        if (this.drops != null) {
 
             var powerup = Math.pick(this.drops);
 
-            if (powerup !== null) {
-                assert(typeof this.dropDefines[powerup] === 'function');
+            if (powerup != null) {
+                assert(typeof this.dropDefines[powerup] == 'function');
                 this.spawnUnowned(this.dropDefines[powerup], [this.x, this.y]);
             }
         }
@@ -91,7 +91,7 @@ module Hostile = proto (Configurable) {
 
     public think: func(finite delta) {
 
-        if (Configurable->think(delta) !== true) {
+        if (Configurable->think(delta) != true) {
             return false;
         }
 
@@ -113,7 +113,7 @@ module Hostile = proto (Configurable) {
 
             var weaponParams = this.getPrimaryParams();
 
-            if (weaponParams !== null) {
+            if (weaponParams != null) {
                 this.primary.fire.apply(this.primary, weaponParams);
             }
         }

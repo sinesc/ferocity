@@ -40,8 +40,8 @@ module Measured = proto {
         var frames          = renderer.sprite.frames.length;
         var centerFrame     = Math.round(frames / 2);
         var selectedFrame   = renderer.forceFrame;
-        var acceleration    = axis === 'y' ? this.accelerationY : this.accelerationX;
-        var velocity        = Math.abs(axis === 'y' ? this.velocityY : this.velocityX);
+        var acceleration    = axis == 'y' ? this.accelerationY : this.accelerationX;
+        var velocity        = Math.abs(axis == 'y' ? this.velocityY : this.velocityX);
 
         acceleration = acceleration > 0 ? Math.min(accelerationLimit, acceleration) : Math.max(-accelerationLimit, acceleration);
 
@@ -51,7 +51,7 @@ module Measured = proto {
 
         // generally rotate towards center frame
 
-        //if (Math.round(selectedFrame) !== centerFrame && velocity < velocityTreshold) {
+        //if (Math.round(selectedFrame) != centerFrame && velocity < velocityTreshold) {
             selectedFrame += (centerFrame - selectedFrame).sgn * accelerationLimit * decelerationFactor * delta;
         //}
 
@@ -66,7 +66,7 @@ module Measured = proto {
      */
     public measure: func(finite delta = application.frameDelta) {
 
-        if (delta === 0) {
+        if (delta == 0) {
             return false;
         }
 

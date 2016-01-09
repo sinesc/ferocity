@@ -71,7 +71,7 @@ module Scratch = proto (Glow) {
      */
     public draw: func(finite x, finite y) {
 
-        if (this.active !== true) {
+        if (this.active != true) {
             return;
         }
 
@@ -84,7 +84,7 @@ module Scratch = proto (Glow) {
 
         var glowAlpha = Color.getAlpha1(this.glowColor);
 
-        if (this.glowSprite !== null && glowAlpha > 0.0) {
+        if (this.glowSprite != null && glowAlpha > 0.0) {
 
             var color = Color.fromTemperature(15000 - (maxGlow * maxGlow * maxGlow * maxGlow * 11500), glowAlpha * maxGlow * 255);
 
@@ -114,7 +114,7 @@ module Scratch = proto (Glow) {
         // check if done
 
         if (application.frameTime - this.expT0 > emitter.duration) {
-            if (this.continuous !== true) {
+            if (this.continuous != true) {
                 this.active = false;
             } else {
                 this.expT0 = application.frameTime;

@@ -36,7 +36,7 @@ module Level = proto (Component) {
 
         parent->constructor();
 
-        if (previous !== null) {
+        if (previous != null) {
 
             this.entities = previous.entities;
 
@@ -61,11 +61,11 @@ module Level = proto (Component) {
      */
     public addEntity: func(func Type, Array constructArgs = [ ], func? initFunction = null, Array? initArgs = null) {
 
-        assert(Type === Entity || Type.prototype instanceof Entity, 'Type is not of Entity');
+        assert(Type == Entity || Type.prototype instanceof Entity, 'Type is not of Entity');
 
         var entity = Type.construct(constructArgs);
 
-        if (initFunction !== null) {
+        if (initFunction != null) {
             initFunction.apply(entity, initArgs);
         }
 
