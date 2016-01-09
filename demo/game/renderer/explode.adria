@@ -41,22 +41,22 @@ module Explode = proto (Glow) {
     /**
      * time until explosion glow reaches maximum (percent of animation duration)
      */
-    public glowGain: 35,
+    public glowGain: 35.0,
 
     /**
      * time until explosion glow fades back to zero (percent of animation duration)
      */
-    public glowDecay: 35,
+    public glowDecay: 35.0,
 
     /**
      * minimum number of explosions
      */
-    public expMinEffects: 5,
+    public expMinEffects: 3,
 
     /**
      * maximum number of explosions
      */
-    public expMaxEffects: 6,
+    public expMaxEffects: 5,
 
     /**
      * maximum distance from center for explosions to spawn
@@ -88,10 +88,10 @@ module Explode = proto (Glow) {
      */
     public start: func() {
 
-        this.entropy    = new Random(Math.random());
-        this.active     = true;
-        this.expT0       = application.frameTime;
-        this.numExplosions = Math.headDist(this.expMaxEffects - this.expMinEffects) + this.expMinEffects;
+        this.entropy        = new Random(Math.random());
+        this.active         = true;
+        this.expT0          = application.frameTime;
+        this.numExplosions  = this.entropy.intLinearMin(this.expMaxEffects - this.expMinEffects) + this.expMinEffects;
 
         // return total amount of time required to play through the effect
 
@@ -143,7 +143,7 @@ module Explode = proto (Glow) {
                 this.polarOffset(ent.float(0, 360), i === 0 ? 0.0 : ent.float(0, this.expMaxRadius));
 
                 application.scene.addSprite(
-                    (i+1) % 2 * 2,
+                    (i+1) % 2 * 2 + 2,
                     application.radiant.BLENDMODE[this.composite],
                     this.sprite,
                     frameId,

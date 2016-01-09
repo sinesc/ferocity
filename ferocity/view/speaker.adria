@@ -15,29 +15,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-var Listenable = require('astd/listenable');
-
-var Buffer = proto (Listenable) {
-    public constructor: func(file) {
-        this.file = file;
-    },
-    public data: null,
-    public status: 'loading',
-    public message: '',
-    public file: '',
-};
-
 module Speaker = proto {
 
     protected audio: null,
     protected source: null,
     protected buffer: null,
-    protected /*static*/ buffers: Object.create(null),
 
     public constructor: func(object audio, string file) {
 
         this.audio = audio;
-        this.buffer = this.load(file);
+        this.buffer = audio.loadBuffer(file);
     },
 
     public destroy: func() {
@@ -115,56 +102,5 @@ module Speaker = proto {
         currentFrom.connect(this.audio.masterGain);
 
         return source;
-    },
-
-    /**
-     * loads a resources asynchonously and returns a buffer listenable
-     *
-     * @param string src
-     */
-    protected load: func(string src) {
-
-        // create new buffer descriptor
-
-        if (typeof this.buffers[src] === 'undefined') {
-
-            var buffer = new Buffer(src);
-            this.buffers[src] = buffer;
-
-            // load data and decode
-
-            var audio = this.audio;
-            var request = new XMLHttpRequest();
-
-            request.open('GET', src, true);
-            request.responseType = 'arraybuffer';
-            request.onload = func() {
-                buffer.status = 'decoding';
-                audio.ctx.decodeAudioData(
-                    request.response,
-                    func(data) {
-                        buffer.status = 'ready';
-                        buffer.data = data;
-                        buffer.execute('ready');
-                    },
-                    func(e) {
-                        buffer.status = 'failed';
-                        buffer.message = e.err;
-                        buffer.execute('error');
-                    }
-                );
-            };
-            request.onerror = func() {
-                buffer.status = 'failed';
-                buffer.message = 'i/o error';
-                buffer.execute('error');
-            };
-
-            request.send();
-        }
-
-        // return buffer descriptor
-
-        return this.buffers[src];
     },
 };

@@ -21,12 +21,17 @@ module Noisy = proto {
 
     protected speaker: null,
 
+    protected preloadSound: func(filename) {
+        
+        
+    },
+    
     /**
      * play directional audio originating from entity
      *
      * @param string filename
      */
-    public playSound: func(filename) {
+    protected playSound: func(filename) {
 
         this.stopSound();
         this.speaker = new Directional(application.audio, filename);
@@ -35,7 +40,7 @@ module Noisy = proto {
     /**
      * change sound properties
      */
-    public alterSound: func(refDistance, rolloffFactor) {
+    protected alterSound: func(refDistance, rolloffFactor) {
 
         if (this.speaker !== null) {
             this.speaker.setOpt(refDistance, rolloffFactor);
@@ -45,7 +50,7 @@ module Noisy = proto {
     /**
      * stop playing entity sound
      */
-    public stopSound: func() {
+    protected stopSound: func() {
 
         if (this.speaker !== null) {
             this.speaker.destroy();

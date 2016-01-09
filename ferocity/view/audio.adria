@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+var AudioBuffer = require('./audiobuffer');
 var AudioContext = require('./web/audio_context');
 var MusicStream = require('./speaker/music_stream');
 
@@ -25,7 +26,10 @@ module Audio = proto  {
     public dopplerRatio: 0.1,
     public ctx: null,
 
+    protected buffers: Object.create(null),
     protected currentMusicStream: null,
+    protected sourceCount: 0,
+    protected maxChannels: 64,
 
     public constructor: func() {
 
@@ -42,6 +46,32 @@ module Audio = proto  {
         this.compressor.connect(this.ctx.destination);
 
         //this.masterGain.connect(this.ctx.destination);
+    },
+
+    /**
+     * returns whether or not a sound with given priority can be played right now
+     *
+     * @param priority 0 <= priority <= 4
+     * @return boolean
+     */
+    protected priorityFilter: func(finite priority) {
+
+        var sc = this.sourceCount;
+        var sm = this.maxChannels / 192;
+
+        if (sc < 32 * sm) {
+            return true;
+        } else if (sc < 64 * sm && priority > 0) {
+            return true;
+        } else if (sc < 128 * sm && priority > 1) {
+            return true;
+        } else if (sc < 192 * sm && priority > 2) {
+            return true;
+        } else if (priority == 4) {
+            return true;
+        }
+
+        return false;
     },
 
     /**
@@ -96,5 +126,24 @@ module Audio = proto  {
      */
     public adjustMusicStream: func(finite volume) {
         this.currentMusicStream.volume(volume);
+    },
+
+    /**
+     * loads a resources asynchonously and returns a buffer listenable
+     *
+     * @param string src
+     * @return AudioBuffer
+     */
+    public loadBuffer: func(string src) {
+
+        // create new buffer descriptor
+
+        if (typeof this.buffers[src] === 'undefined') {
+            this.buffers[src] = new AudioBuffer(this, src);
+        }
+
+        // return buffer descriptor
+
+        return this.buffers[src];
     },
 };

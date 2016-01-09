@@ -34,7 +34,7 @@ module Player = proto (Configurable) {
     protected BaseRenderer: RendererExhaust,
     protected baseSprites: [ 'sprite/player/speedy_98x72x30.png' ],
 
-    public Weapon              : proto (Weapon) { interval: 0.1, damage: 80 },
+    public Weapon              : proto (Weapon) { interval: 0.2, damage: 80 },
     public primary             : null,
     public secondary           : null,
     public shield              : null,

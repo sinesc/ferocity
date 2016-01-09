@@ -61,7 +61,7 @@ this.image = new TextureFile(application.radiant, 'background/backdrop_blue.jpg'
     public populate: func() {
 
         for (var i = 0; i < 2000; i++) {
-            this.addEntity(Asteroid, [ 900 + Math.randInt(0, 5000), 25 + Math.randInt(0, 1030), Math.rand(0.1, 1.0) ]);
+            this.addEntity(Asteroid, [ 900 + Math.randInt(0, 5000), 25 + Math.randInt(0, 1030), Math.rand(0.3, 1.0) ]);
         }
 
         for (var i = 0; i < 200; i++) {
@@ -75,7 +75,7 @@ this.image = new TextureFile(application.radiant, 'background/backdrop_blue.jpg'
 
     public frame: func() {
 
-        this.x += application.frameDelta * 2;
+        this.x += application.frameDelta * 30;
 
 
     var shiftY = 40;

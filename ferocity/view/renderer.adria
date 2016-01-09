@@ -25,7 +25,7 @@ module Renderer = proto {
 
     public active       : true,
 
-    public spriteName   : null,
+    public spriteNames  : null,
     public sprite       : null,
     public FPS          : 25,
     public layer        : 3,
@@ -60,12 +60,22 @@ module Renderer = proto {
     /**
      * constructor
      *
-     * @param string spriteName specify to override default (if any)
+     * @param string/Array spriteNames specify to override default (if any)
      */
-    public constructor: func(string spriteName = this.spriteName) {
+    public constructor: func(spriteNames = this.spriteNames) {
 
-        this.spriteName = spriteName;
-        this.sprite = application.sprites.load(this.spriteName);
+        this.spriteNames = spriteNames;
+
+        var selectedSprite;
+
+        if (typeof this.spriteNames === 'string') {
+            selectedSprite = this.spriteNames;
+        } else {
+            assert(this.spriteNames instanceof Array);
+            selectedSprite = this.spriteNames.random();
+        }
+
+        this.sprite = application.sprites.load(selectedSprite);
         assert(this.sprite !== null);
     },
 
